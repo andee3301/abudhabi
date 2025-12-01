@@ -3,9 +3,8 @@
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
-
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [TripController::class, 'index']);
     Route::get('dashboard', [TripController::class, 'index'])->name('dashboard');
     Route::get('trips', [TripController::class, 'index'])->name('trips.index');
     Route::get('trips/{trip}', [TripController::class, 'show'])->name('trips.show');
@@ -14,3 +13,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
