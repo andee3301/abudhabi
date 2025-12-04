@@ -2,7 +2,7 @@
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <h2 class="text-2xl font-semibold text-gray-900">Trips</h2>
-            <p class="text-sm text-gray-500">Plan journeys, capture memories, and keep weather in sight.</p>
+            <p class="text-sm text-gray-500">Plan journeys and capture memories.</p>
         </div>
         <div class="flex flex-wrap gap-3">
             <div class="relative">
@@ -19,7 +19,7 @@
             >
                 <option value="all">All statuses</option>
                 <option value="planned">Planned</option>
-                <option value="in_progress">In progress</option>
+                <option value="ongoing">Ongoing</option>
                 <option value="completed">Completed</option>
             </select>
         </div>
@@ -35,9 +35,9 @@
                     @error('title') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="text-sm font-medium text-gray-700">Destination</label>
-                    <input wire:model.defer="destination" type="text" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Lisbon, Portugal" />
-                    @error('destination') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    <label class="text-sm font-medium text-gray-700">Primary location</label>
+                    <input wire:model.defer="primary_location_name" type="text" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Lisbon, Portugal" />
+                    @error('primary_location_name') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="grid gap-4 md:grid-cols-3">
@@ -55,7 +55,7 @@
                     <label class="text-sm font-medium text-gray-700">Status</label>
                     <select wire:model.defer="status" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="planned">Planned</option>
-                        <option value="in_progress">In progress</option>
+                        <option value="ongoing">Ongoing</option>
                         <option value="completed">Completed</option>
                     </select>
                     @error('status') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
@@ -63,9 +63,9 @@
             </div>
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
-                    <label class="text-sm font-medium text-gray-700">Timezone</label>
-                    <input wire:model.defer="timezone" type="text" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Europe/Lisbon" />
-                    @error('timezone') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    <label class="text-sm font-medium text-gray-700">Companion</label>
+                    <input wire:model.defer="companion_name" type="text" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Travel buddy" />
+                    @error('companion_name') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Notes</label>
@@ -89,7 +89,7 @@
             <a href="{{ route('trips.show', $trip) }}" class="block rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:shadow-md">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->destination }}</p>
+                        <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->primary_location_name }}</p>
                         <h4 class="text-lg font-semibold text-gray-900">{{ $trip->title }}</h4>
                     </div>
                     <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
@@ -98,11 +98,9 @@
                 </div>
                 <div class="mt-3 text-sm text-gray-600">
                     <p>{{ $trip->start_date?->toFormattedDateString() }} → {{ $trip->end_date?->toFormattedDateString() }}</p>
-                    @if($trip->latestWeather)
-                        <p class="mt-1 text-xs text-gray-500">
-                            Latest weather: {{ $trip->latestWeather->conditions ?? 'N/A' }} {{ $trip->latestWeather->temperature ? round($trip->latestWeather->temperature, 1).'°C' : '' }}
-                        </p>
-                    @endif
+                    <p class="mt-1 text-xs text-gray-500">
+                        Notes: {{ \Illuminate\Support\Str::limit($trip->notes, 40) }}
+                    </p>
                 </div>
             </a>
         @empty

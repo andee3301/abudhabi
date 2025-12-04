@@ -1,72 +1,119 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500">{{ $trip->destination }}</p>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    {{ $trip->title }}
-                </h2>
-                <p class="text-sm text-gray-500">{{ $trip->start_date?->toFormattedDateString() }} → {{ $trip->end_date?->toFormattedDateString() }}</p>
-            </div>
-            <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                {{ ucfirst(str_replace('_', ' ', $trip->status)) }}
-            </span>
-        </div>
-    </x-slot>
-
-    <div class="py-8">
-        <div class="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-            <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Trip overview</h3>
-                        @if($trip->notes)
-                            <p class="mt-2 text-sm text-gray-700">{{ $trip->notes }}</p>
-                        @endif
-                    </div>
-                    @if($trip->latestWeather)
-                        <div class="text-right text-sm text-gray-600">
-                            <p class="font-semibold">Latest weather</p>
-                            <p>{{ $trip->latestWeather->conditions ?? 'N/A' }} {{ $trip->latestWeather->temperature ? round($trip->latestWeather->temperature, 1).'°C' : '' }}</p>
-                            <p class="text-xs text-gray-500">{{ $trip->latestWeather->recorded_at?->diffForHumans() }}</p>
-                        </div>
+    <div class="space-y-6">
+        <div class="overflow-hidden rounded-2xl border border-white/30 bg-white/70 shadow-xl backdrop-blur">
+            <div class="h-52 w-full bg-cover bg-center" style="background-image: url('{{ $trip->cover_url }}')"></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 p-6">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->primary_location_name }}</p>
+                    <h1 class="text-2xl font-semibold text-gray-900">{{ $trip->title }}</h1>
+                    <p class="text-sm text-gray-600">{{ $trip->start_date?->toFormattedDateString() }} – {{ $trip->end_date?->toFormattedDateString() }}</p>
+                    @if($trip->companion_name)
+                        <p class="text-xs text-gray-500">With {{ $trip->companion_name }}</p>
                     @endif
                 </div>
-            </div>
-
-            <livewire:trips.journal-timeline :trip="$trip" />
-
-            <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <h3 class="text-lg font-semibold text-gray-900">Weather log</h3>
-                <div class="mt-4 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Recorded</th>
-                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Conditions</th>
-                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Temp (°C)</th>
-                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Humidity</th>
-                                <th class="px-3 py-2 text-left font-semibold text-gray-700">Provider</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse($trip->weatherSnapshots as $weather)
-                                <tr>
-                                    <td class="px-3 py-2 text-gray-700">{{ $weather->recorded_at?->toDayDateTimeString() }}</td>
-                                    <td class="px-3 py-2 text-gray-700">{{ $weather->conditions ?? '—' }}</td>
-                                    <td class="px-3 py-2 text-gray-700">{{ $weather->temperature !== null ? round($weather->temperature, 1) : '—' }}</td>
-                                    <td class="px-3 py-2 text-gray-700">{{ $weather->humidity ?? '—' }}%</td>
-                                    <td class="px-3 py-2 text-gray-700">{{ ucfirst($weather->provider) }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="px-3 py-4 text-center text-gray-500">No weather snapshots yet.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{{ ucfirst($trip->status) }}</span>
+                    <a href="{{ route('journal.create', ['trip_id' => $trip->id]) }}" class="rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700">Add Journal Entry</a>
                 </div>
             </div>
+            <div class="px-6 pb-6 text-sm text-gray-700">
+                {{ $trip->notes ?? 'Add notes to this trip to keep track of ideas and plans.' }}
+            </div>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-3">
+            <section class="space-y-4 lg:col-span-2">
+                <div class="rounded-2xl border border-white/30 bg-white/70 p-5 shadow-lg backdrop-blur">
+                    <h3 class="text-lg font-semibold text-gray-900">Overview</h3>
+                    <p class="mt-2 text-sm text-gray-700">Key itinerary sections for this trip.</p>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div class="rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                            <p class="text-xs text-gray-500">Housing</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ $housing->count() }}</p>
+                        </div>
+                        <div class="rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                            <p class="text-xs text-gray-500">Transport</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ $transport->count() }}</p>
+                        </div>
+                        <div class="rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                            <p class="text-xs text-gray-500">Activities</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ $activities->count() }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/30 bg-white/70 p-5 shadow-lg backdrop-blur">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Journal entries</h3>
+                        <a href="{{ route('journal.create', ['trip_id' => $trip->id]) }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">New entry</a>
+                    </div>
+                    <div class="mt-4 space-y-3">
+                        @forelse($trip->journalEntries as $entry)
+                            <article class="rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+                                    <span class="font-semibold text-gray-900">{{ $entry->title }}</span>
+                                    <span>{{ $entry->entry_date?->toFormattedDateString() }}</span>
+                                </div>
+                                <p class="mt-2 text-sm text-gray-700">{{ \Illuminate\Support\Str::limit($entry->body, 180) }}</p>
+                                @if($entry->mood)
+                                    <p class="mt-2 text-xs text-indigo-600">Mood: {{ $entry->mood }}</p>
+                                @endif
+                            </article>
+                        @empty
+                            <p class="text-sm text-gray-500">No journal entries yet.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
+
+            <aside class="space-y-4">
+                <div class="rounded-2xl border border-white/30 bg-white/70 p-5 shadow-lg backdrop-blur">
+                    <h3 class="text-lg font-semibold text-gray-900">Housing</h3>
+                    <div class="mt-3 space-y-3">
+                        @forelse($housing as $stay)
+                            <div class="rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                                <p class="text-sm font-semibold text-gray-900">{{ $stay->title }}</p>
+                                <p class="text-xs text-gray-600">{{ $stay->location_name }}</p>
+                                <p class="text-xs text-gray-500">{{ optional($stay->start_datetime)->format('M d, H:i') }} – {{ optional($stay->end_datetime)->format('M d, H:i') }}</p>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">No housing added.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/30 bg-white/70 p-5 shadow-lg backdrop-blur">
+                    <h3 class="text-lg font-semibold text-gray-900">Transport</h3>
+                    <div class="mt-3 space-y-3">
+                        @forelse($transport as $item)
+                            <div class="rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                                <p class="text-sm font-semibold text-gray-900">{{ $item->title }}</p>
+                                <p class="text-xs text-gray-600">{{ $item->location_name }}</p>
+                                <p class="text-xs text-gray-500">{{ optional($item->start_datetime)->format('M d, H:i') }}</p>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">No transport added.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/30 bg-white/70 p-5 shadow-lg backdrop-blur">
+                    <h3 class="text-lg font-semibold text-gray-900">Countries visited</h3>
+                    <div class="mt-3 space-y-2">
+                        @forelse($trip->countryVisits as $visit)
+                            <div class="flex items-center justify-between rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">{{ strtoupper($visit->country_code) }}</p>
+                                    <p class="text-xs text-gray-600">{{ $visit->city_name }}</p>
+                                </div>
+                                <p class="text-xs text-gray-500">{{ $visit->visited_at?->toFormattedDateString() }}</p>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">No country logs yet.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
 </x-app-layout>

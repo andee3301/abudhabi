@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -23,13 +24,16 @@ class TripFactory extends Factory
         return [
             'user_id' => \App\Models\User::factory(),
             'title' => $this->faker->sentence(3),
-            'destination' => $this->faker->city(),
+            'primary_location_name' => $this->faker->city().', '.$this->faker->country(),
             'start_date' => $start,
             'end_date' => $end,
-            'status' => $this->faker->randomElement(['planned', 'in_progress', 'completed']),
-            'notes' => $this->faker->boolean(70) ? $this->faker->paragraph() : null,
-            'cover_image_path' => null,
-            'timezone' => $this->faker->timezone(),
+            'status' => $this->faker->randomElement(['planned', 'ongoing', 'completed']),
+            'companion_name' => $this->faker->boolean(60) ? $this->faker->firstName() : null,
+            'notes' => $this->faker->boolean(70) ? $this->faker->paragraphs(2, true) : null,
+            'cover_image_url' => Arr::random([
+                'marketing/covers/atlas-blue.svg',
+                'marketing/covers/atlas-sunset.svg',
+            ]),
         ];
     }
 }

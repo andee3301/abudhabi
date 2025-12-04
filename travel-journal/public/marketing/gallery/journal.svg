@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" role="img" aria-label="Illustration of a traveler writing">
+  <defs>
+    <linearGradient id="journal-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0e7ff" />
+      <stop offset="1" stop-color="#c7d2fe" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="280" rx="32" fill="url(#journal-bg)" />
+  <rect x="42" y="50" width="116" height="180" rx="18" fill="#f8fafc" stroke="#c4b5fd" stroke-width="4" />
+  <line x1="58" y1="90" x2="142" y2="90" stroke="#cbd5f5" stroke-width="4" stroke-linecap="round" />
+  <line x1="58" y1="120" x2="142" y2="120" stroke="#cbd5f5" stroke-width="4" stroke-linecap="round" />
+  <line x1="58" y1="150" x2="132" y2="150" stroke="#cbd5f5" stroke-width="4" stroke-linecap="round" />
+  <path d="M84 186 Q100 210 134 214" fill="none" stroke="#f97316" stroke-width="6" stroke-linecap="round" />
+  <circle cx="70" cy="212" r="20" fill="#fbbf24" opacity="0.35" />
+  <circle cx="150" cy="60" r="12" fill="#f472b6" opacity="0.35" />
+</svg>

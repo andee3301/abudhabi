@@ -14,6 +14,10 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     public function register(): void
     {
+        if (! config('telescope.enabled')) {
+            return;
+        }
+
         // Telescope::night();
 
         $this->hideSensitiveRequestDetails();
@@ -28,6 +32,15 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
                    $entry->isScheduledTask() ||
                    $entry->hasMonitoredTag();
         });
+    }
+
+    public function boot(): void
+    {
+        if (! config('telescope.enabled')) {
+            return;
+        }
+
+        parent::boot();
     }
 
     /**

@@ -39,4 +39,8 @@ return [
         'key' => env('OPENWEATHER_API_KEY'),
     ],
 
+    'marketing_assets' => [
+        'cdn_base_url' => env('MARKETING_ASSET_CDN'),
+    ],
+
 ];

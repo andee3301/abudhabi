@@ -14,11 +14,11 @@ class ManageTrips extends Component
     public string $search = '';
     public string $status = 'all';
     public string $title = '';
-    public string $destination = '';
+    public string $primary_location_name = '';
     public string $start_date = '';
     public string $end_date = '';
     public ?string $notes = '';
-    public ?string $timezone = '';
+    public ?string $companion_name = '';
 
     protected $queryString = ['search', 'status'];
 
@@ -26,19 +26,19 @@ class ManageTrips extends Component
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'destination' => ['required', 'string', 'max:255'],
+            'primary_location_name' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'status' => ['required', Rule::in(['planned', 'in_progress', 'completed', 'all'])],
+            'status' => ['required', Rule::in(['planned', 'ongoing', 'completed', 'all'])],
             'notes' => ['nullable', 'string'],
-            'timezone' => ['nullable', 'string', 'max:100'],
+            'companion_name' => ['nullable', 'string', 'max:255'],
             'search' => ['nullable', 'string'],
         ];
     }
 
     public function mount(): void
     {
-        $this->timezone = config('app.timezone');
+        //
     }
 
     public function updatedSearch(): void
@@ -58,8 +58,7 @@ class ManageTrips extends Component
 
         $trip = Trip::create($validated);
 
-        $this->reset(['title', 'destination', 'start_date', 'end_date', 'notes']);
-        $this->timezone = $validated['timezone'];
+        $this->reset(['title', 'primary_location_name', 'start_date', 'end_date', 'notes', 'companion_name']);
         $this->resetPage();
 
         $this->dispatch('tripCreated', id: $trip->id);
@@ -68,12 +67,12 @@ class ManageTrips extends Component
 
     public function render()
     {
-        $trips = Trip::with(['latestWeather'])
+        $trips = Trip::withCount('journalEntries')
             ->whereBelongsTo(auth()->user())
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {
                     $query->where('title', 'like', '%'.$this->search.'%')
-                        ->orWhere('destination', 'like', '%'.$this->search.'%');
+                        ->orWhere('primary_location_name', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->status !== 'all', function ($query) {

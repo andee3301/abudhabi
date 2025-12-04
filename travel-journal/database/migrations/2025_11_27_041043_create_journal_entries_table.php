@@ -15,16 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('weather_snapshot_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('title')->nullable();
-            $table->text('body');
-            $table->string('location')->nullable();
-            $table->timestamp('logged_at')->useCurrent();
-            $table->boolean('is_public')->default(false);
+            $table->date('entry_date');
+            $table->string('title');
+            $table->longText('body');
+            $table->string('mood')->nullable();
+            $table->json('photo_urls')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['trip_id', 'logged_at']);
+            $table->index(['trip_id', 'entry_date']);
         });
     }
 

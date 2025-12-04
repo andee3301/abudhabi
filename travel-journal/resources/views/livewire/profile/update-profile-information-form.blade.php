@@ -9,6 +9,9 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     public string $name = '';
+    public ?string $display_name = '';
+    public ?string $home_country = '';
+    public ?string $avatar_url = '';
     public string $email = '';
 
     /**
@@ -17,6 +20,9 @@ new class extends Component
     public function mount(): void
     {
         $this->name = Auth::user()->name;
+        $this->display_name = Auth::user()->display_name;
+        $this->home_country = Auth::user()->home_country;
+        $this->avatar_url = Auth::user()->avatar_url;
         $this->email = Auth::user()->email;
     }
 
@@ -29,6 +35,9 @@ new class extends Component
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'display_name' => ['nullable', 'string', 'max:255'],
+            'home_country' => ['nullable', 'string', 'max:2'],
+            'avatar_url' => ['nullable', 'string', 'max:500'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
         ]);
 
@@ -78,6 +87,25 @@ new class extends Component
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
+        </div>
+
+        <div>
+            <x-input-label for="display_name" :value="__('Display Name')" />
+            <x-text-input wire:model="display_name" id="display_name" name="display_name" type="text" class="mt-1 block w-full" autocomplete="nickname" />
+            <x-input-error class="mt-2" :messages="$errors->get('display_name')" />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+                <x-input-label for="home_country" :value="__('Home Country (ISO)')" />
+                <x-text-input wire:model="home_country" id="home_country" name="home_country" type="text" class="mt-1 block w-full" maxlength="2" />
+                <x-input-error class="mt-2" :messages="$errors->get('home_country')" />
+            </div>
+            <div>
+                <x-input-label for="avatar_url" :value="__('Avatar URL')" />
+                <x-text-input wire:model="avatar_url" id="avatar_url" name="avatar_url" type="text" class="mt-1 block w-full" autocomplete="photo" />
+                <x-input-error class="mt-2" :messages="$errors->get('avatar_url')" />
+            </div>
         </div>
 
         <div>

@@ -20,10 +20,9 @@ class JournalEntryResource extends JsonResource
             'user_id' => $this->user_id,
             'title' => $this->title,
             'body' => $this->body,
-            'location' => $this->location,
-            'is_public' => $this->is_public,
-            'logged_at' => $this->logged_at,
-            'media' => MediaResource::collection($this->whenLoaded('media')),
+            'entry_date' => $this->entry_date,
+            'mood' => $this->mood,
+            'photo_urls' => $this->photo_urls,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

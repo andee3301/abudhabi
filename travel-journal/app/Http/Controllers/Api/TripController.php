@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreTripRequest;
+use App\Http\Requests\UpdateTripRequest;
 use App\Http\Resources\TripResource;
 use App\Models\Trip;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class TripController extends Controller
 {
@@ -15,12 +16,13 @@ class TripController extends Controller
      */
     public function index()
     {
-        $query = Trip::with('latestWeather')
+        $query = Trip::withCount(['journalEntries', 'itineraryItems'])
             ->whereBelongsTo(request()->user())
             ->when(request('search'), function ($query, $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('destination', 'like', "%{$search}%");
+                        ->orWhere('primary_location_name', 'like', "%{$search}%")
+                        ->orWhere('notes', 'like', "%{$search}%");
                 });
             })
             ->when(request('status'), function ($query, $status) {
@@ -34,23 +36,14 @@ class TripController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTripRequest $request)
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'destination' => ['required', 'string', 'max:255'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'status' => ['required', Rule::in(['planned', 'in_progress', 'completed'])],
-            'notes' => ['nullable', 'string'],
-            'timezone' => ['nullable', 'string', 'max:100'],
+        $trip = Trip::create([
+            ...$request->validated(),
+            'user_id' => $request->user()->id,
         ]);
 
-        $validated['user_id'] = $request->user()->id;
-
-        $trip = Trip::create($validated);
-
-        return (new TripResource($trip->fresh('latestWeather')))
+        return (new TripResource($trip))
             ->response()
             ->setStatusCode(201);
     }
@@ -63,30 +56,20 @@ class TripController extends Controller
         abort_unless($trip->user_id === request()->user()->id, 403);
 
         return new TripResource(
-            $trip->load(['journalEntries.media', 'weatherSnapshots', 'latestWeather'])
+            $trip->load(['journalEntries', 'itineraryItems', 'countryVisits'])
         );
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Trip $trip)
+    public function update(UpdateTripRequest $request, Trip $trip)
     {
         abort_unless($trip->user_id === $request->user()->id, 403);
 
-        $validated = $request->validate([
-            'title' => ['sometimes', 'string', 'max:255'],
-            'destination' => ['sometimes', 'string', 'max:255'],
-            'start_date' => ['sometimes', 'date'],
-            'end_date' => ['sometimes', 'date', 'after_or_equal:start_date'],
-            'status' => ['sometimes', Rule::in(['planned', 'in_progress', 'completed'])],
-            'notes' => ['nullable', 'string'],
-            'timezone' => ['nullable', 'string', 'max:100'],
-        ]);
+        $trip->update($request->validated());
 
-        $trip->update($validated);
-
-        return new TripResource($trip->fresh('latestWeather'));
+        return new TripResource($trip);
     }
 
     /**

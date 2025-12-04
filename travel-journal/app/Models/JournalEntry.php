@@ -13,17 +13,16 @@ class JournalEntry extends Model
     protected $fillable = [
         'trip_id',
         'user_id',
-        'weather_snapshot_id',
         'title',
         'body',
-        'location',
-        'logged_at',
-        'is_public',
+        'entry_date',
+        'mood',
+        'photo_urls',
     ];
 
     protected $casts = [
-        'logged_at' => 'datetime',
-        'is_public' => 'boolean',
+        'entry_date' => 'date',
+        'photo_urls' => 'array',
     ];
 
     public function trip()
@@ -36,13 +35,4 @@ class JournalEntry extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function weatherSnapshot()
-    {
-        return $this->belongsTo(WeatherSnapshot::class);
-    }
-
-    public function media()
-    {
-        return $this->hasMany(Media::class);
-    }
 }

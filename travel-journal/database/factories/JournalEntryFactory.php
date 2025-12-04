@@ -18,16 +18,18 @@ class JournalEntryFactory extends Factory
      */
     public function definition(): array
     {
-        $loggedAt = $this->faker->dateTimeBetween('-1 week', '+1 week');
+        $entryDate = $this->faker->dateTimeBetween('-2 months', 'now');
 
         return [
             'trip_id' => Trip::factory(),
             'user_id' => fn (array $attributes) => Trip::find($attributes['trip_id'])->user_id ?? User::factory(),
             'title' => $this->faker->sentence(4),
-            'body' => $this->faker->paragraphs(2, true),
-            'location' => $this->faker->city(),
-            'logged_at' => $loggedAt,
-            'is_public' => $this->faker->boolean(30),
+            'body' => $this->faker->paragraphs(3, true),
+            'entry_date' => $entryDate,
+            'mood' => $this->faker->randomElement(['joyful', 'curious', 'tired', 'inspired']),
+            'photo_urls' => [
+                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
+            ],
         ];
     }
 }

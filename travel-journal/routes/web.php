@@ -1,16 +1,23 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExploreController;
+use App\Http\Controllers\JournalController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 
+Route::view('/', 'welcome');
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/', [TripController::class, 'index']);
-    Route::get('dashboard', [TripController::class, 'index'])->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('trips', [TripController::class, 'index'])->name('trips.index');
     Route::get('trips/{trip}', [TripController::class, 'show'])->name('trips.show');
+    Route::get('explore', ExploreController::class)->name('explore.index');
+
+    Route::get('journal/create', [JournalController::class, 'create'])->name('journal.create');
+    Route::post('journal', [JournalController::class, 'store'])->name('journal.store');
 
     Route::view('profile', 'profile')->name('profile');
 });
 
 require __DIR__.'/auth.php';
-

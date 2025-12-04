@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreApiJournalEntryRequest;
 use App\Http\Resources\JournalEntryResource;
 use App\Models\JournalEntry;
-use App\Models\Media;
 use App\Models\Trip;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class JournalEntryController extends Controller
 {
@@ -20,8 +19,7 @@ class JournalEntryController extends Controller
         abort_unless($trip->user_id === $request->user()->id, 403);
 
         $entries = $trip->journalEntries()
-            ->with('media')
-            ->latest('logged_at')
+            ->latest('entry_date')
             ->paginate(20);
 
         return JournalEntryResource::collection($entries);
@@ -30,41 +28,21 @@ class JournalEntryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, Trip $trip)
+    public function store(StoreApiJournalEntryRequest $request, Trip $trip)
     {
         abort_unless($trip->user_id === $request->user()->id, 403);
-
-        $validated = $request->validate([
-            'title' => ['nullable', 'string', 'max:255'],
-            'body' => ['required', 'string'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'is_public' => ['boolean'],
-            'photos.*' => ['image', 'max:5120'],
-        ]);
 
         $entry = JournalEntry::create([
             'trip_id' => $trip->id,
             'user_id' => $request->user()->id,
-            'title' => $validated['title'] ?? null,
-            'body' => $validated['body'],
-            'location' => $validated['location'] ?? null,
-            'is_public' => $validated['is_public'] ?? false,
-            'logged_at' => now($trip->timezone ?? config('app.timezone')),
+            'title' => $request->title,
+            'body' => $request->body,
+            'entry_date' => $request->entry_date,
+            'mood' => $request->mood,
+            'photo_urls' => $request->photo_urls ?? [],
         ]);
 
-        foreach ($request->file('photos', []) as $photo) {
-            $path = $photo->store("journal/{$trip->id}", 'public');
-
-            Media::create([
-                'journal_entry_id' => $entry->id,
-                'disk' => 'public',
-                'path' => $path,
-                'mime_type' => $photo->getMimeType(),
-                'size' => $photo->getSize(),
-            ]);
-        }
-
-        return (new JournalEntryResource($entry->load('media')))
+        return (new JournalEntryResource($entry))
             ->response()
             ->setStatusCode(201);
     }
@@ -76,7 +54,7 @@ class JournalEntryController extends Controller
     {
         abort_unless($journalEntry->user_id === request()->user()->id, 403);
 
-        return new JournalEntryResource($journalEntry->load('media'));
+        return new JournalEntryResource($journalEntry);
     }
 
     /**
@@ -87,15 +65,16 @@ class JournalEntryController extends Controller
         abort_unless($journalEntry->user_id === $request->user()->id, 403);
 
         $validated = $request->validate([
-            'title' => ['nullable', 'string', 'max:255'],
+            'title' => ['sometimes', 'string', 'max:255'],
             'body' => ['sometimes', 'string'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'is_public' => ['boolean'],
+            'entry_date' => ['sometimes', 'date'],
+            'mood' => ['nullable', 'string', 'max:50'],
+            'photo_urls' => ['nullable', 'array'],
         ]);
 
         $journalEntry->update($validated);
 
-        return new JournalEntryResource($journalEntry->fresh('media'));
+        return new JournalEntryResource($journalEntry);
     }
 
     /**
