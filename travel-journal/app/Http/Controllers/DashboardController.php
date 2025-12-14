@@ -18,14 +18,14 @@ class DashboardController extends Controller
         $user = $request->user()->load('homeSettings');
 
         $cards = DashboardCache::remember($user->id, 'cards', function () use ($user) {
-            $upcomingTrips = Trip::with('region')
+            $upcomingTrips = Trip::with(['region', 'city'])
                 ->whereBelongsTo($user)
                 ->whereDate('start_date', '>=', now()->startOfDay())
                 ->orderBy('start_date')
                 ->limit(4)
                 ->get();
 
-            $recentTrips = Trip::with('region')
+            $recentTrips = Trip::with(['region', 'city'])
                 ->whereBelongsTo($user)
                 ->orderByDesc('end_date')
                 ->limit(3)
@@ -35,6 +35,7 @@ class DashboardController extends Controller
                 'itineraryItems' => fn ($q) => $q->orderBy('start_datetime'),
                 'countryVisits',
                 'region',
+                'city',
             ])
                 ->whereBelongsTo($user)
                 ->where('status', 'ongoing')
@@ -61,6 +62,11 @@ class DashboardController extends Controller
                 $timeline = $this->buildTimeline($currentTrip);
             }
 
+            $mapTrips = Trip::with('city')
+                ->whereBelongsTo($user)
+                ->orderByDesc('start_date')
+                ->get();
+
             return compact(
                 'upcomingTrips',
                 'recentTrips',
@@ -70,7 +76,8 @@ class DashboardController extends Controller
                 'transport',
                 'activities',
                 'countryVisits',
-                'timeline'
+                'timeline',
+                'mapTrips',
             );
         });
 

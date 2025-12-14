@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>TripKit · Modern Travel Journal</title>
+    <title>Treep · Modern Travel Journal</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
@@ -52,9 +52,9 @@
             <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-3">
                     <span
-                        class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-xl font-semibold text-indigo-600 shadow-lg ring-1 ring-white/50">TK</span>
+                        class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-xl font-semibold text-emerald-600 shadow-lg ring-1 ring-white/50">TR</span>
                     <div>
-                        <p class="text-sm uppercase tracking-widest text-gray-500">TripKit</p>
+                        <p class="text-sm uppercase tracking-widest text-gray-500">Treep</p>
                         <p class="text-lg font-semibold text-gray-900">Thoughtful travel journaling</p>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                     </div>
                     <h1 class="mt-6 text-4xl font-semibold text-gray-900 sm:text-5xl">Plan, log, and relive every leg of
                         your adventures.</h1>
-                    <p class="mt-4 text-lg text-gray-600">TripKit keeps itineraries, weather snapshots, travel
+                    <p class="mt-4 text-lg text-gray-600">Treep keeps itineraries, weather snapshots, travel
                         companions, and reflective journal notes in one calm interface. Capture the story while the
                         details are still fresh.</p>
                     <div class="mt-8 flex flex-wrap gap-4">

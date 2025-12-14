@@ -1,13 +1,21 @@
 export function initThemeToggle() {
     const toggle = document.querySelector('[data-theme-toggle]');
     const root = document.documentElement;
+    const storageKey = 'treep-theme';
+
+    const updateIcon = (isDark) => {
+        if (!toggle) return;
+        toggle.textContent = isDark ? '☀️' : '🌙';
+        toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
 
     const applyStored = () => {
-        const stored = localStorage.getItem('tripkit-theme');
-        if (stored === 'dark') {
-            root.classList.add('dark');
-        } else if (stored === 'light') {
-            root.classList.remove('dark');
+        const stored = localStorage.getItem(storageKey) ?? localStorage.getItem('tripkit-theme');
+        const prefersDark = stored === null ? true : stored === 'dark';
+        root.classList.toggle('dark', prefersDark);
+        updateIcon(prefersDark);
+        if (stored && !localStorage.getItem(storageKey)) {
+            localStorage.setItem(storageKey, stored);
         }
     };
 
@@ -18,6 +26,7 @@ export function initThemeToggle() {
     toggle.addEventListener('click', () => {
         const willUseDark = !root.classList.contains('dark');
         root.classList.toggle('dark', willUseDark);
-        localStorage.setItem('tripkit-theme', willUseDark ? 'dark' : 'light');
+        localStorage.setItem(storageKey, willUseDark ? 'dark' : 'light');
+        updateIcon(willUseDark);
     });
 }

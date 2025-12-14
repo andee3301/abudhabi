@@ -62,7 +62,7 @@ class AuthenticationTest extends TestCase
 
         $response = $this->get('/dashboard');
 
-        $response->assertOk()->assertSee('TripKit');
+        $response->assertOk()->assertSee('Treep');
     }
 
     public function test_users_can_logout(): void
