@@ -7,10 +7,13 @@ use App\Http\Requests\StoreApiJournalEntryRequest;
 use App\Http\Resources\JournalEntryResource;
 use App\Models\JournalEntry;
 use App\Models\Trip;
+use App\Support\ChecksAbilities;
 use Illuminate\Http\Request;
 
 class JournalEntryController extends Controller
 {
+    use ChecksAbilities;
+
     /**
      * Display a listing of the resource.
      */
@@ -31,6 +34,7 @@ class JournalEntryController extends Controller
     public function store(StoreApiJournalEntryRequest $request, Trip $trip)
     {
         abort_unless($trip->user_id === $request->user()->id, 403);
+        $this->ensureAbility($request, 'journal:write');
 
         $entry = JournalEntry::create([
             'trip_id' => $trip->id,
@@ -63,6 +67,7 @@ class JournalEntryController extends Controller
     public function update(Request $request, JournalEntry $journalEntry)
     {
         abort_unless($journalEntry->user_id === $request->user()->id, 403);
+        $this->ensureAbility($request, 'journal:write');
 
         $validated = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
@@ -83,6 +88,7 @@ class JournalEntryController extends Controller
     public function destroy(JournalEntry $journalEntry)
     {
         abort_unless($journalEntry->user_id === request()->user()->id, 403);
+        $this->ensureAbility(request(), 'journal:write');
 
         $journalEntry->delete();
 

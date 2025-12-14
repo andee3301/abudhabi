@@ -14,6 +14,9 @@ class CountryVisit extends Model
         'trip_id',
         'country_code',
         'city_name',
+        'state_region',
+        'timezone',
+        'region_id',
         'visited_at',
     ];
 
@@ -24,5 +27,10 @@ class CountryVisit extends Model
     public function trip()
     {
         return $this->belongsTo(Trip::class);
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
     }
 }

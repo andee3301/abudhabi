@@ -55,6 +55,11 @@ class User extends Authenticatable
         return $this->hasMany(Trip::class);
     }
 
+    public function homeSettings()
+    {
+        return $this->hasOne(UserHomeSetting::class);
+    }
+
     public function journalEntries()
     {
         return $this->hasMany(JournalEntry::class);

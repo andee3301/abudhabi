@@ -4,9 +4,10 @@
             <div class="h-52 w-full bg-cover bg-center" style="background-image: url('{{ $trip->cover_url }}')"></div>
             <div class="flex flex-wrap items-center justify-between gap-3 p-6">
                 <div>
-                    <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->primary_location_name }}</p>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->location_label }}</p>
                     <h1 class="text-2xl font-semibold text-gray-900">{{ $trip->title }}</h1>
                     <p class="text-sm text-gray-600">{{ $trip->start_date?->toFormattedDateString() }} – {{ $trip->end_date?->toFormattedDateString() }}</p>
+                    <p class="text-xs text-gray-500">TZ: {{ $trip->timezone ?? 'UTC' }}</p>
                     @if($trip->companion_name)
                         <p class="text-xs text-gray-500">With {{ $trip->companion_name }}</p>
                     @endif
@@ -39,6 +40,16 @@
                             <p class="text-xs text-gray-500">Activities</p>
                             <p class="text-lg font-semibold text-gray-900">{{ $activities->count() }}</p>
                         </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-white/30 bg-white/70 p-5 shadow-lg backdrop-blur">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Plan itinerary</h3>
+                        <span class="text-xs text-gray-500">Timezone: {{ $trip->timezone ?? 'UTC' }}</span>
+                    </div>
+                    <div class="mt-4">
+                        @livewire('trips.plan-itinerary', ['trip' => $trip], key('planner-'.$trip->id))
                     </div>
                 </div>
 

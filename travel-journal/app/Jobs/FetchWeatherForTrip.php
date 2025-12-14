@@ -16,6 +16,9 @@ class FetchWeatherForTrip implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+    public int $backoff = 15;
+
     public function __construct(public Trip $trip)
     {
     }
@@ -30,8 +33,10 @@ class FetchWeatherForTrip implements ShouldQueue
             return;
         }
 
-        $response = Http::get('https://api.openweathermap.org/data/2.5/weather', [
-            'q' => $this->trip->destination,
+        $location = trim(($this->trip->city ?: '').','.$this->trip->country_code) ?: $this->trip->primary_location_name;
+
+        $response = Http::timeout(10)->get('https://api.openweathermap.org/data/2.5/weather', [
+            'q' => $location,
             'appid' => $apiKey,
             'units' => 'metric',
         ]);

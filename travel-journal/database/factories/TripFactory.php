@@ -20,11 +20,28 @@ class TripFactory extends Factory
     {
         $start = $this->faker->dateTimeBetween('now', '+2 months');
         $end = (clone $start)->modify('+'.random_int(3, 14).' days');
+        $stateRegion = $this->faker->state();
+        $country = $this->faker->countryCode();
+        $timezone = $this->faker->timezone();
 
         return [
             'user_id' => \App\Models\User::factory(),
+            'city_id' => \App\Models\City::factory()->state([
+                'country_code' => $country,
+                'state_region' => $stateRegion,
+                'timezone' => $timezone,
+            ]),
             'title' => $this->faker->sentence(3),
             'primary_location_name' => $this->faker->city().', '.$this->faker->country(),
+            'city' => $this->faker->city(),
+            'state_region' => $stateRegion,
+            'country_code' => $country,
+            'timezone' => $timezone,
+            'region_id' => \App\Models\Region::factory()->state([
+                'country_code' => $country,
+                'name' => $stateRegion,
+                'default_timezone' => $timezone,
+            ]),
             'start_date' => $start,
             'end_date' => $end,
             'status' => $this->faker->randomElement(['planned', 'ongoing', 'completed']),
@@ -34,6 +51,7 @@ class TripFactory extends Factory
                 'marketing/covers/atlas-blue.svg',
                 'marketing/covers/atlas-sunset.svg',
             ]),
+            'tags' => [$country, Str::slug($stateRegion)],
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
 class TripApiTest extends TestCase
@@ -24,6 +25,9 @@ class TripApiTest extends TestCase
         $payload = [
             'title' => 'Weekend in Kyoto',
             'primary_location_name' => 'Kyoto, Japan',
+            'city' => 'Kyoto',
+            'country_code' => 'JP',
+            'timezone' => 'Asia/Tokyo',
             'start_date' => now()->addWeek()->toDateString(),
             'end_date' => now()->addWeeks(2)->toDateString(),
             'status' => 'planned',
@@ -65,5 +69,40 @@ class TripApiTest extends TestCase
             ], ['Accept' => 'application/json'])
             ->assertCreated()
             ->assertJsonPath('data.body', 'Visited Fushimi Inari today.');
+    }
+
+    public function test_trips_write_requires_correct_ability(): void
+    {
+        $user = User::factory()->create(['password' => 'password']);
+
+        $tokenResponse = $this->postJson('/api/auth/token', [
+            'email' => $user->email,
+            'password' => 'password',
+            'device_name' => 'limited',
+            'abilities' => ['trips:read'],
+        ]);
+
+        $this->assertEquals(['trips:read'], $tokenResponse->json('abilities'));
+
+        $token = $tokenResponse->json('token');
+        $tokenModel = PersonalAccessToken::findToken($token);
+        $this->assertNotNull($tokenModel);
+        $this->assertEquals(['trips:read'], $tokenModel->abilities);
+        $this->assertFalse($tokenModel->can('trips:write'));
+
+        $payload = [
+            'title' => 'Ability Check',
+            'primary_location_name' => 'Porto, PT',
+            'city' => 'Porto',
+            'country_code' => 'PT',
+            'timezone' => 'Europe/Lisbon',
+            'start_date' => now()->addWeek()->toDateString(),
+            'end_date' => now()->addWeeks(2)->toDateString(),
+            'status' => 'planned',
+        ];
+
+        $this->withToken($token)
+            ->postJson('/api/trips', $payload)
+            ->assertForbidden();
     }
 }

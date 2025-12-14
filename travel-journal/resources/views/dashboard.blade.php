@@ -1,236 +1,361 @@
 @php
-    $now = \Carbon\Carbon::now();
-    $startOfMonth = $now->copy()->startOfMonth();
-    $daysInMonth = $now->daysInMonth;
-    $currentTripRange = $currentTrip ? [$currentTrip->start_date, $currentTrip->end_date] : null;
+    $cityData = $cityIntel['city'] ?? [];
+    $intel = $cityIntel['intel'] ?? [];
+    $timeIntel = $cityIntel['time'] ?? [];
+    $budget = $cityIntel['budget'] ?? ($intel['budget'] ?? []);
+    $emergencyContacts = $cityIntel['emergency_contacts'] ?? ($intel['emergency_numbers'] ?? []);
+    $weatherChunks = $intel['weather'] ?? [];
+    $transportHints = $intel['transport'] ?? [];
+    $electricalInfo = $cityIntel['electrical'] ?? null;
 @endphp
 
 <x-app-layout>
-    <div class="space-y-8">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <h1 class="text-3xl font-semibold text-gray-900">Your trip</h1>
-                <p class="text-sm text-gray-600">Plan, track, and journal every journey.</p>
+    <div class="space-y-8"
+         data-globe-dashboard
+         data-search-endpoint="{{ route('cities.search') }}"
+         data-intel-template="{{ route('cities.show', ['city' => '__slug__']) }}"
+         data-initial='@json($cityIntel ?? [])'
+         data-featured='@json($featuredCities ?? [])'>
+
+        <div class="relative overflow-hidden rounded-3xl border border-white/20 bg-white/70 shadow-2xl backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/70">
+            <div class="pointer-events-none absolute inset-0">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/15 via-transparent to-sky-400/12"></div>
+                @if(!empty($cityData['hero_image_url']))
+                    <img src="{{ $cityData['hero_image_url'] }}" alt="{{ $cityData['name'] ?? 'City' }}"
+                         class="absolute inset-0 h-full w-full object-cover opacity-25 dark:opacity-15" loading="lazy">
+                @endif
             </div>
-            <div class="flex gap-3">
-                <a href="{{ route('trips.index') }}"
-                    class="rounded-2xl bg-white/80 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm backdrop-blur hover:bg-white">View
-                    trips</a>
-                <a href="{{ route('journal.create') }}"
-                    class="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-indigo-700">New
-                    journal</a>
+
+            <div class="relative grid gap-6 p-6 lg:grid-cols-3">
+                <div class="space-y-5 lg:col-span-2">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <p class="text-[11px] uppercase tracking-[0.28em] text-indigo-600 dark:text-indigo-300">City intelligence</p>
+                            <h1 class="text-3xl font-semibold text-slate-900 dark:text-white" data-city-field="name">{{ $cityData['name'] ?? 'Pick a city' }}</h1>
+                            <p class="text-sm text-slate-600 dark:text-slate-400" data-city-field="tagline">{{ $intel['tagline'] ?? 'Zoom anywhere and pull intel instantly.' }}</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                            <span class="pill" data-city-field="timezone">{{ $cityData['timezone'] ?? 'TZ —' }}</span>
+                            <span class="pill" data-city-field="home-offset">
+                                @if($timeIntel && isset($timeIntel['offset_hours']))
+                                    {{ $timeIntel['offset_hours'] }}h from home
+                                @else
+                                    Offset pending
+                                @endif
+                            </span>
+                            <span class="pill-primary" data-city-field="local-time">{{ isset($timeIntel['local_time']) ? \Carbon\Carbon::parse($timeIntel['local_time'])->format('H:i') : '—:—' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="relative w-full max-w-xl">
+                                <input type="search" name="q" autocomplete="off"
+                                       value="{{ $cityData['name'] ?? '' }}"
+                                       placeholder="Search city or country..."
+                                       data-city-search
+                                       class="w-full rounded-2xl border border-white/40 bg-white/80 px-4 py-3 text-sm text-slate-800 shadow-sm backdrop-blur focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-100">
+                                <div data-city-suggestions class="absolute z-30 mt-2 hidden w-full rounded-2xl border border-white/30 bg-white/95 p-1 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"></div>
+                            </div>
+                            <div class="hidden items-center gap-2 text-xs text-slate-500 dark:text-slate-400" data-city-loading>
+                                <span class="h-2 w-2 animate-ping rounded-full bg-indigo-400"></span>
+                                <span>Fetching intel...</span>
+                            </div>
+                        </div>
+                        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 shadow-inner">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(96,165,250,0.18),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.18),transparent_32%)]"></div>
+                            <div class="relative h-[320px] w-full lg:h-[360px]" data-globe>
+                                <div class="grid h-full place-items-center text-sm text-slate-300">Loading globe...</div>
+                            </div>
+                            <div data-globe-fallback class="absolute inset-0 hidden">
+                                <img src="{{ asset('marketing/world-map.svg') }}" alt="World map fallback"
+                                     class="h-full w-full object-cover opacity-50">
+                                <div class="absolute inset-0 grid place-items-center bg-slate-900/60 text-xs font-semibold text-slate-100">WebGL unavailable — static map shown.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card relative overflow-hidden p-5">
+                    <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-indigo-100/40 dark:from-slate-800/40 dark:to-slate-900/60"></div>
+                    <div class="relative space-y-4">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-semibold text-slate-900 dark:text-white">City signals</p>
+                            <a href="{{ route('explore.index', ['q' => $cityData['slug'] ?? $cityData['name'] ?? '']) }}"
+                               class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">Open Intel →</a>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Local time</p>
+                                <p class="text-xl font-semibold text-slate-900 dark:text-white" data-city-field="local-time">{{ isset($timeIntel['local_time']) ? \Carbon\Carbon::parse($timeIntel['local_time'])->format('H:i') : '—:—' }}</p>
+                                <p class="text-[11px] text-slate-500" data-city-field="timezone">{{ $cityData['timezone'] ?? '—' }}</p>
+                            </div>
+                            <div class="rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Currency</p>
+                                <p class="text-xl font-semibold text-slate-900 dark:text-white" data-city-field="currency">{{ $intel['currency_code'] ?? $cityData['currency_code'] ?? '—' }}</p>
+                                <p class="text-[11px] text-slate-500" data-city-field="currency-rate">
+                                    @if(isset($intel['currency_rate']))
+                                        {{ $intel['currency_rate'] }} vs {{ $homeCurrency }}
+                                    @else
+                                        Spot check vs {{ $homeCurrency }}
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Electrical</p>
+                                <p class="text-xl font-semibold text-slate-900 dark:text-white" data-city-field="electrical">{{ $electricalInfo->plug_types ?? $intel['electrical_plugs'] ?? '—' }}</p>
+                                <p class="text-[11px] text-slate-500" data-city-field="voltage">{{ $electricalInfo->voltage ?? $intel['voltage'] ?? 'Voltage?' }}</p>
+                            </div>
+                            <div class="rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Emergency</p>
+                                <ul class="space-y-1 text-sm" data-city-list="emergency">
+                                    @forelse($emergencyContacts as $contact)
+                                        <li class="flex items-center justify-between">
+                                            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ $contact['label'] ?? $contact['service'] ?? 'SOS' }}</span>
+                                            <span class="text-xs text-rose-500">{{ $contact['number'] ?? '' }}</span>
+                                        </li>
+                                    @empty
+                                        <li class="text-xs text-slate-500">Add numbers</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="pill" data-city-field="visa">{{ $intel['visa'] ?? 'Visa info pending' }}</span>
+                            <span class="pill">{{ $cityData['country_code'] ?? '—' }}</span>
+                            <a href="{{ route('trips.index', ['q' => $cityData['name'] ?? null]) }}"
+                                class="rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-indigo-700">
+                                Plan trip with this city
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-3">
-            {{-- Left column --}}
-            <div class="space-y-4">
-                <div
-                    class="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-xl backdrop-blur-md ring-1 ring-white/50">
+            <div class="space-y-6 lg:col-span-2">
+                <div class="glass-card p-5">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm text-gray-600">{{ $now->format('F Y') }}</p>
-                            <h3 class="text-lg font-semibold text-gray-900">Calendar</h3>
+                            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Arrival primer</p>
+                            <p class="text-lg font-semibold text-slate-900 dark:text-white" data-city-field="summary">{{ $intel['summary'] ?? 'High-level overview appears here.' }}</p>
                         </div>
-                        <span class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">Trip
-                            dates</span>
+                        <span class="pill-primary" data-city-field="currency">{{ $intel['currency_code'] ?? $cityData['currency_code'] ?? '—' }}</span>
                     </div>
-                    <div class="mt-4 grid grid-cols-7 gap-2 text-center text-xs text-gray-500">
-                        @foreach (['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as $day)
-                            <div>{{ $day }}</div>
+
+                    <div class="mt-4 grid gap-4 md:grid-cols-2">
+                        <details class="rounded-2xl border border-white/30 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-800/60" open>
+                            <summary class="cursor-pointer text-sm font-semibold text-slate-900 dark:text-white">Neighborhoods to stay</summary>
+                            <ul class="mt-3 space-y-2" data-city-list="neighborhoods">
+                                @forelse($intel['neighborhoods'] ?? [] as $neighborhood)
+                                    <li class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-200">
+                                        <span class="mt-1 h-2 w-2 rounded-full bg-indigo-400"></span>
+                                        <div>
+                                            <p class="font-semibold">{{ $neighborhood['name'] ?? '' }}</p>
+                                            <p class="text-xs text-slate-500">{{ $neighborhood['note'] ?? '' }}</p>
+                                        </div>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-slate-500">Add stay ideas.</li>
+                                @endforelse
+                            </ul>
+                        </details>
+                        <details class="rounded-2xl border border-white/30 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-800/60" open>
+                            <summary class="cursor-pointer text-sm font-semibold text-slate-900 dark:text-white">Before you arrive</summary>
+                            <ul class="mt-3 space-y-2" data-city-list="checklist">
+                                @forelse($intel['checklist'] ?? [] as $item)
+                                    <li class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-200">
+                                        <span class="mt-1 h-2 w-2 rounded-full bg-emerald-400"></span>
+                                        <span>{{ $item }}</span>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-slate-500">No checklist yet.</li>
+                                @endforelse
+                            </ul>
+                        </details>
+                        <details class="rounded-2xl border border-white/30 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-800/60">
+                            <summary class="cursor-pointer text-sm font-semibold text-slate-900 dark:text-white">Cultural notes</summary>
+                            <ul class="mt-3 space-y-2" data-city-list="cultural">
+                                @forelse($intel['cultural_notes'] ?? [] as $note)
+                                    <li class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-200">
+                                        <span class="mt-1 h-2 w-2 rounded-full bg-amber-400"></span>
+                                        <span>{{ $note }}</span>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-slate-500">Add etiquette reminders.</li>
+                                @endforelse
+                            </ul>
+                        </details>
+                        <details class="rounded-2xl border border-white/30 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-800/60">
+                            <summary class="cursor-pointer text-sm font-semibold text-slate-900 dark:text-white">Weather + seasonality</summary>
+                            <ul class="mt-3 space-y-2" data-city-list="weather">
+                                @forelse($weatherChunks ? array_values($weatherChunks) : [] as $weather)
+                                    <li class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-200">
+                                        <span class="mt-1 h-2 w-2 rounded-full bg-cyan-400"></span>
+                                        <span>{{ is_string($weather) ? $weather : (\Illuminate\Support\Arr::get($weather, 'snapshot') ?? '') }}</span>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-slate-500">No weather snapshot.</li>
+                                @endforelse
+                            </ul>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Best months & budget</p>
+                            <p class="text-lg font-semibold text-slate-900 dark:text-white">Plan the spend + timing</p>
+                        </div>
+                        <span class="pill">Seasonality</span>
+                    </div>
+                    <div class="mt-4 grid gap-4 md:grid-cols-3">
+                        <div class="rounded-2xl border border-white/30 bg-white/60 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-800/60">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Best months</p>
+                            <ul class="mt-2 space-y-1 text-sm" data-city-list="best-months">
+                                @forelse($intel['best_months'] ?? [] as $month)
+                                    <li class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-sky-400"></span>
+                                        <span>{{ $month }}</span>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-slate-500">Add season picks.</li>
+                                @endforelse
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl border border-white/30 bg-white/60 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-800/60">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Daily budget</p>
+                            <div class="mt-2 space-y-2 text-sm">
+                                <div class="flex items-center justify-between"><span>Low</span><span class="font-semibold" data-city-field="budget-low">{{ $budget['low'] ?? '—' }}</span></div>
+                                <div class="flex items-center justify-between"><span>Mid</span><span class="font-semibold" data-city-field="budget-mid">{{ $budget['mid'] ?? '—' }}</span></div>
+                                <div class="flex items-center justify-between"><span>High</span><span class="font-semibold" data-city-field="budget-high">{{ $budget['high'] ?? '—' }}</span></div>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-white/30 bg-white/60 p-4 backdrop-blur dark:border-slate-800 dark:bg-slate-800/60">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Transport cheat-sheet</p>
+                            <ul class="mt-2 space-y-1 text-sm" data-city-list="transport">
+                                @forelse($transportHints ? array_values($transportHints) : [] as $hint)
+                                    <li class="flex items-start gap-2">
+                                        <span class="mt-1 h-2 w-2 rounded-full bg-fuchsia-400"></span>
+                                        <span>{{ $hint }}</span>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-slate-500">Add transfers and rail tips.</li>
+                                @endforelse
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Intel library</h3>
+                        <a href="{{ route('explore.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">Browse all</a>
+                    </div>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                        @foreach(($featuredCities ?? collect())->take(12) as $cityCard)
+                            <div class="rounded-xl border border-white/20 bg-white/70 p-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-800/70">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $cityCard->name }}</p>
+                                    <span class="text-[11px] text-slate-500">{{ $cityCard->timezone }}</span>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-400">{{ $cityCard->state_region }} · {{ $cityCard->country_code }}</p>
+                                <p class="mt-2 text-xs text-slate-700 dark:text-slate-300 line-clamp-2">{{ $cityCard->intel?->summary ?? 'Intel coming soon.' }}</p>
+                                <div class="mt-2 flex flex-wrap gap-1 text-[11px]">
+                                    @foreach(array_slice($cityCard->intel?->best_months ?? [], 0, 2) as $month)
+                                        <span class="rounded-full bg-slate-100 px-2 py-1 text-slate-700 dark:bg-slate-700 dark:text-slate-100">{{ $month }}</span>
+                                    @endforeach
+                                    @if($cityCard->currency_code)
+                                        <span class="rounded-full bg-indigo-100 px-2 py-1 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">{{ $cityCard->currency_code }}</span>
+                                    @endif
+                                </div>
+                            </div>
                         @endforeach
-                        @for ($i = 0; $i < $startOfMonth->dayOfWeek; $i++)
-                            <div></div>
-                        @endfor
-                        @for ($d = 1; $d <= $daysInMonth; $d++)
-                            @php
-                                $date = $startOfMonth->copy()->addDays($d - 1);
-                                $inTrip = $currentTripRange && $date->between($currentTripRange[0], $currentTripRange[1]);
-                            @endphp
-                            <div
-                                class="rounded-lg px-2 py-2 text-sm {{ $inTrip ? 'bg-indigo-600 text-white shadow-md ring-1 ring-indigo-200' : 'bg-white/80 text-gray-700 border border-white/60' }}">
-                                {{ $d }}
-                            </div>
-                        @endfor
                     </div>
                 </div>
-
-                <div
-                    class="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-xl backdrop-blur-md ring-1 ring-white/50">
+                <div class="glass-card p-5">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900">Recent trips</h3>
-                        <span class="text-xs text-gray-500">last 3</span>
-                    </div>
-                    <div class="mt-4 space-y-3">
-                        @forelse($recentTrips as $trip)
-                            <div class="flex items-center gap-3 rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/60">
-                                <div
-                                    class="h-12 w-12 flex-shrink-0 rounded-lg bg-gradient-to-br from-indigo-400 to-sky-300 text-white grid place-items-center text-sm font-semibold">
-                                    {{ strtoupper(substr($trip->primary_location_name, 0, 2)) }}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">{{ $trip->title }}</p>
-                                    <p class="text-xs text-gray-600">{{ $trip->primary_location_name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $trip->start_date?->toFormattedDateString() }} –
-                                        {{ $trip->end_date?->toFormattedDateString() }}</p>
-                                </div>
-                            </div>
-                        @empty
-                            <p class="text-sm text-gray-500">No trips yet.</p>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
-            {{-- Center column --}}
-            <div class="space-y-4">
-                <div
-                    class="overflow-hidden rounded-2xl border border-white/30 bg-white/80 shadow-2xl backdrop-blur-lg ring-1 ring-white/50">
-                    @if($currentTrip)
-                        <div class="h-48 w-full bg-cover bg-center"
-                            style="background-image: url('{{ $currentTrip->cover_url }}')"></div>
-                        <div class="space-y-2 p-5">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-xs uppercase tracking-wide text-gray-500">
-                                        {{ ucfirst($currentTrip->status) }}</p>
-                                    <h2 class="text-2xl font-semibold text-gray-900">{{ $currentTrip->title }}</h2>
-                                    <p class="text-sm text-gray-600">{{ $currentTrip->primary_location_name }}</p>
-                                    <p class="text-sm text-gray-500">
-                                        {{ $currentTrip->start_date?->toFormattedDateString() }} –
-                                        {{ $currentTrip->end_date?->toFormattedDateString() }}</p>
-                                </div>
-                                @if($currentTrip->companion_name)
-                                    <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">With
-                                        {{ $currentTrip->companion_name }}</span>
-                                @endif
-                            </div>
-                            <p class="text-sm text-gray-700">{{ \Illuminate\Support\Str::limit($currentTrip->notes, 160) }}
-                            </p>
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-white/50">Housing
-                                    {{ $housing->count() }}</span>
-                                <span
-                                    class="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-white/50">Transport
-                                    {{ $transport->count() }}</span>
-                                <span
-                                    class="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-white/50">Activities
-                                    {{ $activities->count() }}</span>
-                            </div>
-                            <div class="pt-2">
-                                <a href="{{ route('trips.show', $currentTrip) }}"
-                                    class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-700">Open
-                                    trip →</a>
-                            </div>
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active trip</p>
+                            <p class="text-lg font-semibold text-slate-900 dark:text-white">{{ $currentTrip?->title ?? 'No active trip' }}</p>
+                            <p class="text-xs text-slate-500">{{ $currentTrip?->location_label ?? 'Choose a trip to sync with intel.' }}</p>
                         </div>
-                    @else
-                        <div class="p-6 text-sm text-gray-600">No current trip. Plan your next adventure!</div>
-                    @endif
-                </div>
-
-                <div
-                    class="rounded-2xl border border-white/30 bg-white/80 p-5 shadow-xl backdrop-blur-md ring-1 ring-white/50">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900">Housing</h3>
-                        <span class="text-xs text-gray-500">upcoming</span>
-                    </div>
-                    <div class="mt-4 space-y-3">
-                        @forelse($housing->take(2) as $stay)
-                            <div
-                                class="flex items-start justify-between rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">{{ $stay->title }}</p>
-                                    <p class="text-xs text-gray-600">{{ $stay->location_name }}</p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ optional($stay->start_datetime)->format('M d, H:i') }} →
-                                        {{ optional($stay->end_datetime)->format('M d, H:i') }}</p>
-                                </div>
-                                <span
-                                    class="text-xs font-semibold text-indigo-600">{{ ucfirst($stay->status ?? 'booked') }}</span>
-                            </div>
-                        @empty
-                            <p class="text-sm text-gray-500">Add a housing item to your current trip.</p>
-                        @endforelse
-                    </div>
-                </div>
-
-                <div
-                    class="rounded-2xl border border-white/30 bg-white/80 p-5 shadow-xl backdrop-blur-md ring-1 ring-white/50">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900">Transport</h3>
-                        <a href="{{ $currentTrip ? route('trips.show', $currentTrip) : '#' }}"
-                            class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View all</a>
+                        @if($currentTrip)
+                            <a href="{{ route('trips.show', $currentTrip) }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">Open trip →</a>
+                        @endif
                     </div>
                     <div class="mt-3 space-y-3">
-                        @forelse($transport->take(3) as $item)
-                            <div
-                                class="flex items-start justify-between rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">{{ $item->title }}</p>
-                                    <p class="text-xs text-gray-600">{{ $item->location_name }}</p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ optional($item->start_datetime)->format('M d, H:i') }}</p>
-                                </div>
-                                <span
-                                    class="text-xs font-semibold text-indigo-600">{{ ucfirst($item->status ?? 'booked') }}</span>
-                            </div>
-                        @empty
-                            <p class="text-sm text-gray-500">No transport yet.</p>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
-            {{-- Right column --}}
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div
-                        class="rounded-2xl border border-white/30 bg-white/80 p-4 shadow-lg backdrop-blur-md ring-1 ring-white/50">
-                        <p class="text-xs text-gray-500">Trips this year</p>
-                        <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $stats['tripsThisYear'] }}</p>
-                        <p class="text-xs text-emerald-600">On the move</p>
-                    </div>
-                    <div
-                        class="rounded-2xl border border-white/30 bg-white/80 p-4 shadow-lg backdrop-blur-md ring-1 ring-white/50">
-                        <p class="text-xs text-gray-500">Countries visited</p>
-                        <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $stats['countriesVisited'] }}</p>
-                        <p class="text-xs text-indigo-600">World explorer</p>
-                    </div>
-                </div>
-
-                <div
-                    class="rounded-2xl border border-white/30 bg-white/80 p-5 shadow-lg backdrop-blur-md ring-1 ring-white/50">
-                    <h3 class="text-lg font-semibold text-gray-900">World map</h3>
-                    <div
-                        class="mt-3 flex h-48 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-200 via-white to-sky-100 text-sm text-gray-600 shadow-inner">
-                        Placeholder map · visited: {{ $stats['countriesVisited'] }}
-                    </div>
-                </div>
-
-                <div
-                    class="rounded-2xl border border-white/30 bg-white/80 p-5 shadow-lg backdrop-blur-md ring-1 ring-white/50">
-                    <h3 class="text-lg font-semibold text-gray-900">Countries</h3>
-                    <div class="mt-3 space-y-3">
-                        @forelse($stats['countryCounts'] as $row)
-                            <div
-                                class="flex items-center justify-between rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-white/50">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 grid place-items-center text-xs font-semibold">
-                                        {{ strtoupper($row->country_code) }}
-                                    </div>
+                        @if($currentTrip && $timeline && $timeline->count())
+                            @foreach($timeline as $item)
+                                <div class="flex items-start justify-between rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
                                     <div>
-                                        <p class="text-sm font-semibold text-gray-900">{{ strtoupper($row->country_code) }}
+                                        <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $item['title'] }}</p>
+                                        <p class="text-xs text-slate-500">{{ ucfirst($item['type']) }} · {{ $item['city'] }}</p>
+                                        <p class="text-xs text-slate-500">
+                                            {{ optional($item['start'])->format('M d, H:i') }}
+                                            @if($item['end'])
+                                                → {{ optional($item['end'])->format('M d, H:i') }}
+                                            @endif
                                         </p>
-                                        <p class="text-xs text-gray-500">{{ $row->total }} visits</p>
                                     </div>
+                                    <span class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-300">{{ strtoupper($item['timezone']) }}</span>
                                 </div>
-                                <a href="{{ route('trips.index', ['q' => $row->country_code]) }}"
-                                    class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">View trips</a>
-                            </div>
+                            @endforeach
+                        @else
+                            <p class="text-sm text-slate-500">Add itinerary items to see a timeline for your active trip.</p>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Trip notes</h3>
+                        <a href="{{ route('journal.create') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">New entry</a>
+                    </div>
+                    <div class="mt-3 space-y-3">
+                        @forelse($recentEntries as $entry)
+                            <article class="rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                                <div class="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="font-semibold text-slate-900 dark:text-white">{{ $entry->title }}</span>
+                                    <span>{{ $entry->entry_date?->toFormattedDateString() }}</span>
+                                </div>
+                                <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ \Illuminate\Support\Str::limit($entry->body, 180) }}</p>
+                                @if($entry->mood)
+                                    <p class="mt-2 text-xs text-indigo-600 dark:text-indigo-300">Mood: {{ $entry->mood }}</p>
+                                @endif
+                            </article>
                         @empty
-                            <p class="text-sm text-gray-500">No visits logged yet.</p>
+                            <p class="text-sm text-slate-500">No journal entries yet.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Stats</h3>
+                        <span class="pill">Year-to-date</span>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Trips this year</p>
+                            <p class="text-2xl font-semibold text-slate-900 dark:text-white">{{ $stats['tripsThisYear'] }}</p>
+                            <p class="text-[11px] text-emerald-600 dark:text-emerald-300">On the move</p>
+                        </div>
+                        <div class="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-white/60 backdrop-blur dark:bg-slate-800/70 dark:ring-slate-700">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Countries visited</p>
+                            <p class="text-2xl font-semibold text-slate-900 dark:text-white">{{ $stats['countriesVisited'] }}</p>
+                            <p class="text-[11px] text-indigo-600 dark:text-indigo-300">World explorer</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        @forelse($stats['countryCounts'] as $row)
+                            <span class="pill">{{ strtoupper($row->country_code) }} · {{ $row->total }} stops</span>
+                        @empty
+                            <p class="text-sm text-slate-500">Log a visit to see your map fill in.</p>
                         @endforelse
                     </div>
                 </div>

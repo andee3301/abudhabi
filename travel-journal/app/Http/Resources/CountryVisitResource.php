@@ -14,6 +14,10 @@ class CountryVisitResource extends JsonResource
             'trip_id' => $this->trip_id,
             'country_code' => $this->country_code,
             'city_name' => $this->city_name,
+            'state_region' => $this->state_region,
+            'timezone' => $this->timezone,
+            'region_id' => $this->region_id,
+            'region' => new RegionResource($this->whenLoaded('region')),
             'visited_at' => $this->visited_at,
         ];
     }

@@ -40,6 +40,39 @@
                     @error('primary_location_name') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
             </div>
+            <div class="grid gap-4 md:grid-cols-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700">City</label>
+                    <input wire:model.defer="city" type="text" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Lisbon" />
+                    @error('city') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Region / State</label>
+                    <select wire:model.defer="region_id" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Choose region</option>
+                        @foreach($regions as $region)
+                            <option value="{{ $region->id }}">{{ $region->name }} ({{ $region->country_code }})</option>
+                        @endforeach
+                    </select>
+                    <input wire:model.defer="state_region" type="text" class="mt-2 w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Or type a state/region" />
+                    @error('region_id') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    @error('state_region') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Country code</label>
+                    <input wire:model.defer="country_code" type="text" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm uppercase focus:border-indigo-500 focus:ring-indigo-500" placeholder="US" maxlength="2" />
+                    @error('country_code') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Timezone</label>
+                    <select wire:model.defer="timezone" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @foreach($timezones as $tz)
+                            <option value="{{ $tz }}">{{ $tz }}</option>
+                        @endforeach
+                    </select>
+                    @error('timezone') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
             <div class="grid gap-4 md:grid-cols-3">
                 <div>
                     <label class="text-sm font-medium text-gray-700">Start date</label>
@@ -89,7 +122,7 @@
             <a href="{{ route('trips.show', $trip) }}" class="block rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:shadow-md">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->primary_location_name }}</p>
+                        <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->location_label }}</p>
                         <h4 class="text-lg font-semibold text-gray-900">{{ $trip->title }}</h4>
                     </div>
                     <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">

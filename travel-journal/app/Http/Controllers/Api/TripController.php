@@ -7,16 +7,20 @@ use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
 use App\Http\Resources\TripResource;
 use App\Models\Trip;
+use App\Support\ChecksAbilities;
 use Illuminate\Http\Request;
 
 class TripController extends Controller
 {
+    use ChecksAbilities;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $query = Trip::withCount(['journalEntries', 'itineraryItems'])
+        $query = Trip::with(['region', 'city'])
+            ->withCount(['journalEntries', 'itineraryItems'])
             ->whereBelongsTo(request()->user())
             ->when(request('search'), function ($query, $search) {
                 $query->where(function ($query) use ($search) {
@@ -38,6 +42,8 @@ class TripController extends Controller
      */
     public function store(StoreTripRequest $request)
     {
+        $this->ensureAbility($request, 'trips:write');
+
         $trip = Trip::create([
             ...$request->validated(),
             'user_id' => $request->user()->id,
@@ -56,7 +62,16 @@ class TripController extends Controller
         abort_unless($trip->user_id === request()->user()->id, 403);
 
         return new TripResource(
-            $trip->load(['journalEntries', 'itineraryItems', 'countryVisits'])
+            $trip->load([
+                'journalEntries',
+                'itineraryItems.region',
+                'itineraryItems.city',
+                'countryVisits.region',
+                'region',
+                'city',
+                'itineraries.items',
+                'itineraries.city',
+            ])
         );
     }
 
@@ -66,6 +81,7 @@ class TripController extends Controller
     public function update(UpdateTripRequest $request, Trip $trip)
     {
         abort_unless($trip->user_id === $request->user()->id, 403);
+        $this->ensureAbility($request, 'trips:write');
 
         $trip->update($request->validated());
 
@@ -75,9 +91,10 @@ class TripController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Trip $trip)
+    public function destroy(Request $request, Trip $trip)
     {
         abort_unless($trip->user_id === request()->user()->id, 403);
+        $this->ensureAbility($request, 'trips:write');
 
         $trip->delete();
 

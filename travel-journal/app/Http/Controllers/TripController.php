@@ -10,7 +10,8 @@ class TripController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Trip::withCount(['journalEntries', 'itineraryItems'])
+        $query = Trip::with(['region', 'city'])
+            ->withCount(['journalEntries', 'itineraryItems'])
             ->whereBelongsTo($request->user())
             ->when($request->filled('q'), function ($builder) use ($request) {
                 $builder->where(function ($query) use ($request) {
@@ -38,9 +39,13 @@ class TripController extends Controller
         abort_unless($trip->user_id === $request->user()->id, 403);
 
         $trip->load([
-            'itineraryItems' => fn ($query) => $query->orderBy('start_datetime'),
+            'itineraryItems' => fn ($query) => $query->with(['region', 'city'])->orderBy('start_datetime'),
             'journalEntries' => fn ($query) => $query->latest('entry_date'),
-            'countryVisits',
+            'countryVisits.region',
+            'region',
+            'city',
+            'itineraries.items',
+            'itineraries.city',
         ]);
 
         return view('trips.show', [

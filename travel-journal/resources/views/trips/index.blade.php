@@ -26,7 +26,8 @@
                         <span class="text-xs text-gray-500">{{ $trip->journal_entries_count ?? $trip->journalEntries?->count() }} notes</span>
                     </div>
                     <h3 class="mt-2 text-lg font-semibold text-gray-900">{{ $trip->title }}</h3>
-                    <p class="text-sm text-gray-600">{{ $trip->primary_location_name }}</p>
+                    <p class="text-sm text-gray-600">{{ $trip->location_label }}</p>
+                    <p class="text-[11px] uppercase tracking-wide text-gray-500">TZ: {{ $trip->timezone ?? 'UTC' }}</p>
                     <p class="text-xs text-gray-500">{{ $trip->start_date?->toFormattedDateString() }} – {{ $trip->end_date?->toFormattedDateString() }}</p>
                     <a href="{{ route('trips.show', $trip) }}" class="mt-3 inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-700">
                         View trip →

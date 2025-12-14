@@ -11,6 +11,13 @@
 /.phpunit.cache
 /.vscode
 /.zed
+/.github
+/docs
+/README.md
+/CONTRIBUTING.md
+/LICENSE
+/instruction*
+/ai*
 /auth.json
 /node_modules
 /public/build

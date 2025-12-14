@@ -23,22 +23,40 @@ class Trip extends Model
         'user_id',
         'title',
         'primary_location_name',
+        'city_id',
+        'city',
+        'state_region',
+        'country_code',
+        'timezone',
+        'region_id',
         'start_date',
         'end_date',
         'status',
         'companion_name',
         'notes',
         'cover_image_url',
+        'tags',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'tags' => 'array',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
     }
 
     public function journalEntries()
@@ -49,6 +67,11 @@ class Trip extends Model
     public function itineraryItems()
     {
         return $this->hasMany(ItineraryItem::class);
+    }
+
+    public function itineraries()
+    {
+        return $this->hasMany(Itinerary::class);
     }
 
     public function housing()
@@ -69,6 +92,25 @@ class Trip extends Model
     public function countryVisits()
     {
         return $this->hasMany(CountryVisit::class);
+    }
+
+    public function getLocationLabelAttribute(): string
+    {
+        $city = $this->city?->name ?? $this->city;
+        $state = $this->city?->state_region ?? $this->state_region;
+        $country = $this->city?->country_code ?? $this->country_code;
+
+        $parts = array_filter([
+            $city,
+            $state,
+            $country ? strtoupper($country) : null,
+        ]);
+
+        if (count($parts) > 0) {
+            return implode(', ', $parts);
+        }
+
+        return $this->primary_location_name;
     }
 
     public function getCoverUrlAttribute(): string
