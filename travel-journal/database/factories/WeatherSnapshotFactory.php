@@ -20,7 +20,7 @@ class WeatherSnapshotFactory extends Factory
         return [
             'trip_id' => Trip::factory(),
             'recorded_at' => $this->faker->dateTimeBetween('-1 day', '+1 day'),
-            'provider' => 'openweathermap',
+            'provider' => 'demo',
             'temperature' => $this->faker->randomFloat(1, -5, 35),
             'humidity' => $this->faker->numberBetween(20, 95),
             'wind_speed' => $this->faker->randomFloat(1, 0, 15),

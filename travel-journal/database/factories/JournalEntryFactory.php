@@ -28,7 +28,7 @@ class JournalEntryFactory extends Factory
             'entry_date' => $entryDate,
             'mood' => $this->faker->randomElement(['joyful', 'curious', 'tired', 'inspired']),
             'photo_urls' => [
-                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
+                'placeholders/cover.jpg',
             ],
         ];
     }

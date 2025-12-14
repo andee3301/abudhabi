@@ -71,7 +71,9 @@
             return asset('images/placeholder.svg');
         }
 
-        return 'https://flagcdn.com/'.strtolower($countryCode).'.svg';
+        $path = 'flags/'.strtolower($countryCode).'.svg';
+
+        return file_exists(public_path($path)) ? asset($path) : asset('images/placeholder.svg');
     };
 
     $mapPoints = collect($mapTrips ?? [])
@@ -130,7 +132,7 @@
             </div>
             <div class="relative mt-4 min-h-[320px] overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800"
                  data-world-map
-                 data-map-src="{{ asset('marketing/world-map.svg') }}"
+                 data-map-src="{{ asset('maps/world.svg') }}"
                  data-map-points='@json($mapPoints)'>
                 <div class="grid h-full place-items-center text-xs text-slate-500 dark:text-slate-400">Loading world map…</div>
             </div>

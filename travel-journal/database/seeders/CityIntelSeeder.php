@@ -1071,6 +1071,8 @@ class CityIntelSeeder extends Seeder
         ];
 
         foreach ($cities as $payload) {
+            // Keep media local/offline
+            $payload['hero_image_url'] = 'placeholders/city.jpg';
             $city = City::updateOrCreate(
                 ['slug' => $payload['slug'] ?? Str::slug($payload['name'].'-'.$payload['country_code'])],
                 Arr::only($payload, [
