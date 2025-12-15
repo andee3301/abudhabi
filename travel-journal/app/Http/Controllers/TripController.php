@@ -31,6 +31,7 @@ class TripController extends Controller
                 'q' => $request->q,
                 'status' => $request->status,
             ],
+            'journeys' => $query->get(),
         ]);
     }
 

@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" role="img" aria-label="Flag of Portugal">
-  <rect width="24" height="40" fill="#006600" />
-  <rect x="24" width="36" height="40" fill="#c1121c" />
-  <circle cx="24" cy="20" r="9" fill="#f1bf00" stroke="#f7e18a" stroke-width="1" />
-  <circle cx="24" cy="20" r="5" fill="#ffffff" />
-  <rect x="23" y="15" width="2" height="10" fill="#1f2937" />
-</svg>

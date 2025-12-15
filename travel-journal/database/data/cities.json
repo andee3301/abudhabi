@@ -1,0 +1,106 @@
+[
+  {
+    "city": "Lisbon",
+    "country_code": "PT",
+    "lat": 38.72509,
+    "lng": -9.1498,
+    "timezone": "Europe/Lisbon",
+    "summary": "Built on seven hills where the Tagus River meets the Atlantic, Lisbon enchants visitors with its white-limestone buildings, intimate alleyways, cafe culture and historic charm."
+  },
+  {
+    "city": "Kyoto",
+    "country_code": "JP",
+    "lat": 35.02107,
+    "lng": 135.75385,
+    "timezone": "Asia/Tokyo",
+    "summary": "Former imperial capital (794-1868) spared from WWII bombings; today one of Japan’s largest cities known for thousands of temples, shrines and preserved heritage."
+  },
+  {
+    "city": "Cairo",
+    "country_code": "EG",
+    "lat": 30.06263,
+    "lng": 31.24967,
+    "timezone": "Africa/Cairo",
+    "summary": "Capital of Egypt and one of Africa’s largest cities; located on the Nile’s eastern bank with monuments from the Pyramids of Giza to bustling bazaars."
+  },
+  {
+    "city": "Santa Fe",
+    "country_code": "US",
+    "lat": 35.691544,
+    "lng": -105.944183,
+    "timezone": "America/Denver",
+    "summary": "Oldest and highest U.S. state capital; a cultural hub mixing Pueblo, Hispanic and modern influences with art galleries, museums, a historic plaza and adobe architecture."
+  },
+  {
+    "city": "Cape Town",
+    "country_code": "ZA",
+    "lat": -33.918861,
+    "lng": 18.4233,
+    "timezone": "Africa/Johannesburg",
+    "summary": "Legislative capital and South Africa’s oldest city; known for its harbour and landmarks like Table Mountain and Cape Point, and for being a port-city cultural hub."
+  },
+  {
+    "city": "Marrakech",
+    "country_code": "MA",
+    "lat": 31.628674,
+    "lng": -7.992047,
+    "timezone": "Africa/Casablanca",
+    "summary": "Founded 1070-72 by the Almoravids; a political, economic and cultural centre with monuments like the Koutoubia Mosque and UNESCO-listed medina."
+  },
+  {
+    "city": "Banff",
+    "country_code": "CA",
+    "lat": 51.178364,
+    "lng": -115.57077,
+    "timezone": "America/Edmonton",
+    "summary": "Town inside Banff National Park at high elevation; famous for skiing and outdoor activities amid mountains, glaciers, lakes and hot springs."
+  },
+  {
+    "city": "Seoul",
+    "country_code": "KR",
+    "lat": 37.5326,
+    "lng": 127.024612,
+    "timezone": "Asia/Seoul",
+    "summary": "Megacity of over ten million; capital and economic, political and cultural centre of South Korea with palaces, museums and a mix of historic sites and modern skyscrapers."
+  },
+  {
+    "city": "Florence",
+    "country_code": "IT",
+    "lat": 43.769562,
+    "lng": 11.255814,
+    "timezone": "Europe/Rome",
+    "summary": "Capital of Tuscany; cradle of the Renaissance and a UNESCO-listed city renowned for medieval trade heritage, art and architecture."
+  },
+  {
+    "city": "Queenstown",
+    "country_code": "NZ",
+    "lat": -45.03023,
+    "lng": 168.66271,
+    "timezone": "Pacific/Auckland",
+    "summary": "Adventure Capital on Lake Wakatipu; glacial basin ringed by dramatic ranges offering over 200 adventure activities."
+  },
+  {
+    "city": "Buenos Aires",
+    "country_code": "AR",
+    "lat": -34.603722,
+    "lng": -58.381592,
+    "timezone": "America/Argentina/Buenos_Aires",
+    "summary": "Capital and largest city of Argentina on the Rio de la Plata; major port and centre of arts and education."
+  },
+  {
+    "city": "Jaipur",
+    "country_code": "IN",
+    "lat": 26.907524,
+    "lng": 75.739639,
+    "timezone": "Asia/Kolkata",
+    "summary": "Pink City; capital of Rajasthan founded in 1727 and UNESCO World Heritage site with treasures like Hawa Mahal and Amber Fort."
+  },
+  {
+    "city": "Reykjavík",
+    "country_code": "IS",
+    "lat": 64.13548,
+    "lng": -21.89541,
+    "timezone": "Atlantic/Reykjavik",
+    "summary": "Capital and largest city of Iceland on the Seltjarnar Peninsula; the world’s northernmost sovereign capital, now a modern geothermal-heated cultural hub."
+  }
+]

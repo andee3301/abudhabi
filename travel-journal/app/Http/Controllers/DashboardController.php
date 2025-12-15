@@ -53,6 +53,7 @@ class DashboardController extends Controller
             $activities = collect();
             $countryVisits = collect();
             $timeline = collect();
+            $mapTrips = collect();
 
             if ($currentTrip) {
                 $housing = $currentTrip->itineraryItems->where('type', 'housing');
@@ -88,6 +89,45 @@ class DashboardController extends Controller
         $featuredCities = City::with('intel')->orderBy('name')->limit(20)->get();
         $homeCurrency = $user->homeSettings?->preferred_currency ?? 'USD';
 
+        $normalize = function (Trip $trip) {
+            $country = $trip->country_code ?? optional($trip->city)->country_code;
+            $flag = $country ? sprintf('https://flagcdn.com/%s.svg', strtolower($country)) : asset('images/placeholder.svg');
+
+            return [
+                'id' => $trip->id,
+                'title' => $trip->title,
+                'country_code' => $country,
+                'city' => optional($trip->city)->name ?? $trip->primary_location_name,
+                'lat' => optional($trip->city)->latitude,
+                'lng' => optional($trip->city)->longitude,
+                'image' => $trip->cover_url,
+                'flag' => $flag,
+                'progress' => $this->progressForTrip($trip),
+                'mood' => $this->moodForTrip($trip),
+                'url' => route('trips.show', $trip),
+                'status' => $trip->status,
+                'start' => $trip->start_date,
+                'end' => $trip->end_date,
+                'timezone' => $trip->timezone,
+            ];
+        };
+
+        $allTrips = $cards['mapTrips'] ?? collect();
+        $journeys = collect($allTrips)->map($normalize)->values();
+
+        $activeJourneys = collect([
+            $cards['currentTrip'],
+            ...$cards['upcomingTrips'],
+        ])->filter()->unique('id')->map($normalize)->values();
+
+        $pastJourneys = collect($cards['recentTrips'])->filter(function ($trip) {
+            $ended = $trip->end_date && $trip->end_date->isPast();
+
+            return $trip->status === 'completed' || $ended;
+        })->unique('id')->map($normalize)->values();
+
+        $mapPoints = $journeys->filter(fn ($trip) => ! is_null($trip['lat']) && ! is_null($trip['lng']))->values();
+
         return view('dashboard', [
             ...$cards,
             'regionChips' => $regionChips,
@@ -97,7 +137,56 @@ class DashboardController extends Controller
             'featuredCities' => $featuredCities,
             'homeSettings' => $user->homeSettings,
             'homeCurrency' => $homeCurrency,
+            'journeys' => $journeys,
+            'activeJourneys' => $activeJourneys,
+            'pastJourneys' => $pastJourneys,
+            'mapPoints' => $mapPoints,
         ]);
+    }
+
+    protected function progressForTrip(?Trip $trip): int
+    {
+        if (! $trip) {
+            return 0;
+        }
+
+        if ($trip->status === 'completed') {
+            return 100;
+        }
+
+        $start = $trip->start_date;
+        $end = $trip->end_date;
+
+        if ($start && $end) {
+            $totalDays = max($start->diffInDays($end) + 1, 1);
+            $now = now();
+            $endpoint = $end->lt($now) ? $end : $now;
+            $elapsed = $start->isFuture() ? 0 : min($totalDays, $start->diffInDays($endpoint) + 1);
+
+            return min(100, (int) round(($elapsed / $totalDays) * 100));
+        }
+
+        return $trip->status === 'ongoing' ? 60 : 0;
+    }
+
+    protected function moodForTrip(?Trip $trip): ?string
+    {
+        if (! $trip) {
+            return null;
+        }
+
+        $tagMood = collect($trip->tags ?? [])->first();
+
+        if ($tagMood) {
+            return $tagMood;
+        }
+
+        return match ($trip->status) {
+            'ongoing' => '🧭 Adventurous',
+            'planned' => '✨ Curious',
+            'completed' => '🌧 Reflective',
+            default => '🌱 Calm',
+        };
     }
 
     protected function buildStats($user): array

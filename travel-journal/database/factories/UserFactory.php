@@ -27,7 +27,7 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'display_name' => fake()->firstName(),
             'home_country' => fake()->countryCode(),
-            'avatar_url' => 'placeholders/avatar.jpg',
+            'avatar_url' => 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),

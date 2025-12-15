@@ -48,8 +48,9 @@ class TripFactory extends Factory
             'companion_name' => $this->faker->boolean(60) ? $this->faker->firstName() : null,
             'notes' => $this->faker->boolean(70) ? $this->faker->paragraphs(2, true) : null,
             'cover_image_url' => Arr::random([
-                'marketing/covers/atlas-blue.svg',
-                'marketing/covers/atlas-sunset.svg',
+                'https://images.unsplash.com/photo-1500534314209-b25b1d46c5b5?auto=format&fit=crop&w=1400&q=80',
+                'https://images.unsplash.com/photo-1500534310680-6025ab09a4f9?auto=format&fit=crop&w=1400&q=80',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1400&q=80',
             ]),
             'tags' => [$country, Str::slug($stateRegion)],
         ];

@@ -14,6 +14,40 @@ class CityIntelSeeder extends Seeder
 {
     public function run(): void
     {
+        $jsonPath = database_path('data/cities.json');
+
+        if (file_exists($jsonPath)) {
+            $cities = json_decode(file_get_contents($jsonPath), true) ?? [];
+
+            foreach ($cities as $payload) {
+                $city = City::updateOrCreate(
+                    ['slug' => Str::slug($payload['city'].'-'.$payload['country_code'])],
+                    [
+                        'name' => $payload['city'],
+                        'country_code' => $payload['country_code'],
+                        'timezone' => $payload['timezone'],
+                        'latitude' => $payload['lat'],
+                        'longitude' => $payload['lng'],
+                        'hero_image_url' => 'https://images.unsplash.com/photo-1500534310680-6025ab09a4f9?auto=format&fit=crop&w=1400&q=80',
+                        'meta' => ['summary' => $payload['summary']],
+                    ]
+                );
+
+                CityIntel::updateOrCreate(
+                    ['city_id' => $city->id],
+                    [
+                        'city_id' => $city->id,
+                        'summary' => $payload['summary'],
+                        'checklist' => [],
+                        'cultural_notes' => [],
+                        'budget' => [],
+                    ]
+                );
+            }
+
+            return;
+        }
+
         $cities = [
             [
                 'name' => 'Tokyo',
@@ -1072,7 +1106,7 @@ class CityIntelSeeder extends Seeder
 
         foreach ($cities as $payload) {
             // Keep media local/offline
-            $payload['hero_image_url'] = 'placeholders/city.jpg';
+            $payload['hero_image_url'] = 'https://images.unsplash.com/photo-1500534310680-6025ab09a4f9?auto=format&fit=crop&w=1400&q=80';
             $city = City::updateOrCreate(
                 ['slug' => $payload['slug'] ?? Str::slug($payload['name'].'-'.$payload['country_code'])],
                 Arr::only($payload, [
