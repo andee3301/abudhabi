@@ -54,3 +54,7 @@ Laravel 12 + Livewire 3 playground for planning trips, journaling, and sharing m
 - Enable `APP_ENV=production`, `APP_DEBUG=false`, configure cache/queue drivers (Redis), run `php artisan config:cache route:cache view:cache`.
 - Serve assets via CDN where possible; ensure `MARKETING_ASSET_CDN` points to uploaded marketing assets.
 - Configure Sentry/Slack credentials before enabling alerts; expose Telescope only to authorized users.
+
+## Documentation
+- Marketing asset sources and licensing: `docs/marketing-assets.md`.
+- Curated sources for SVGs, photography, video, and audio: `docs/media-sources.md`.

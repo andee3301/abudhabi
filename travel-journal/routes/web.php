@@ -8,6 +8,7 @@ use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->middleware('cache.headers:public;max_age=600;etag');
+Route::view('docs/media-sources', 'docs.media-sources')->name('docs.media-sources');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

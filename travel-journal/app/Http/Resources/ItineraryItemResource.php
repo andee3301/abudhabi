@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Models\City;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -9,6 +11,10 @@ class ItineraryItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $cityRelation = $this->resource instanceof Model && $this->resource->relationLoaded('city')
+            ? $this->resource->getRelation('city')
+            : null;
+
         return [
             'id' => $this->id,
             'trip_id' => $this->trip_id,
@@ -34,7 +40,7 @@ class ItineraryItemResource extends JsonResource
             'metadata' => $this->metadata,
             'links' => $this->links,
             'tags' => $this->tags,
-            'city_resource' => new CityResource($this->whenLoaded('city')),
+            'city_resource' => $cityRelation instanceof City ? new CityResource($cityRelation) : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
