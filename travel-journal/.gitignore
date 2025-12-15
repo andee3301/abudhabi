@@ -1,3 +1,7 @@
+# Ignore markdown artifacts except README files
+*.md
+!**/README.md
+
 *.log
 .DS_Store
 .env
