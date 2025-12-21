@@ -1,182 +1,400 @@
 @php
-    $activeTrips = collect();
-
-    if ($currentTrip) {
-        $activeTrips->push($currentTrip);
-    }
-
-    $activeTrips = $activeTrips
-        ->merge($upcomingTrips ?? collect())
-        ->unique('id');
-
-    $pastTrips = collect($recentTrips ?? [])
-        ->filter(function ($trip) {
-            $ended = $trip->end_date && $trip->end_date->isPast();
-
-            return $trip->status === 'completed' || $ended;
-        })
-        ->unique('id');
-
-    $mapPoints = collect($mapPoints ?? []);
-    $marketingAssets = app(\App\Support\MarketingAssetRepository::class);
-    $mapImageUrl = $marketingAssets->url('world_map_wireframe');
-    $mapAlt = $marketingAssets->metadata('world_map_wireframe', 'alt') ?? 'World map wireframe';
-    $mapWidth = 1280;
-    $mapHeight = 640;
+    $primaryActive = collect($activeJourneys ?? [])->first();
+    $pastCollection = collect($pastJourneys ?? []);
+    $pastPreview = $pastCollection->take(3);
+    $pastOverflow = $pastCollection->skip(3);
 @endphp
 
 <x-app-layout>
-    <div class="space-y-12 flex-1">
-        {{-- Page header --}}
-        <header class="space-y-2">
-            <p class="text-xs uppercase tracking-[0.28em] text-slate-500">Trip overview</p>
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h1 class="text-3xl font-semibold text-slate-900 dark:text-slate-50">Dashboard</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Calm view of what is in motion and what you have lived.</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
-                    <span class="rounded-full bg-slate-100 px-3 py-1 font-semibold ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">Journeys: {{ $stats['totalTrips'] ?? 0 }}</span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1 font-semibold ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">This year: {{ $stats['tripsThisYear'] ?? 0 }}</span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1 font-semibold ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">Countries: {{ $stats['countriesVisited'] ?? 0 }}</span>
-                </div>
+    <div class="flex-1 space-y-10">
+        <section
+            class="relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-6 shadow-xl ring-1 ring-white/40 dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-sky-950 dark:ring-slate-800">
+            <div
+                class="pointer-events-none absolute inset-0 opacity-70 [background-image:radial-gradient(circle_at_20%_18%,rgba(14,165,233,.12),transparent_36%),radial-gradient(circle_at_86%_10%,rgba(52,211,153,.14),transparent_34%),linear-gradient(120deg,rgba(14,165,233,.08),rgba(255,255,255,0),rgba(16,185,129,.08))]">
             </div>
-        </header>
-
-        {{-- World map pins --}}
-        <section class="rounded-3xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800/80">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">World map</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Tap a pin to jump into its journey.</p>
+            <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div class="space-y-3">
+                    <p class="text-[11px] uppercase tracking-[0.32em] text-slate-500">Flight deck</p>
+                    <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Journey board</h1>
+                    <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-300">Aviation-flavored overview that
+                        keeps your routes, layovers, and memories in one place.</p>
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
+                        <span class="pill-soft">Journeys: {{ $stats['totalTrips'] ?? 0 }}</span>
+                        <span class="pill-soft">This year: {{ $stats['tripsThisYear'] ?? 0 }}</span>
+                        <span class="pill-soft">Countries: {{ $stats['countriesVisited'] ?? 0 }}</span>
+                    </div>
                 </div>
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">{{ $mapPoints->count() }} locations</span>
-            </div>
-            <div class="relative mt-4 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
-                @if($mapImageUrl)
-                    <div class="relative">
-                        <img src="{{ $mapImageUrl }}" alt="{{ $mapAlt }}" class="h-full w-full object-cover" loading="lazy">
-                        @if($mapPoints->isNotEmpty())
-                            <svg viewBox="0 0 {{ $mapWidth }} {{ $mapHeight }}" class="absolute inset-0 h-full w-full">
-                                @foreach($mapPoints as $point)
-                                    @if(!is_null($point['lat']) && !is_null($point['lng']))
-                                        @php
-                                            $x = (($point['lng'] + 180) / 360) * $mapWidth;
-                                            $y = ((90 - $point['lat']) / 180) * $mapHeight;
-                                        @endphp
-                                        <a href="{{ $point['url'] }}" aria-label="{{ $point['title'] }}" target="_self">
-                                            <circle cx="{{ $x }}" cy="{{ $y }}" r="5" class="fill-emerald-400 stroke-slate-900/80 dark:stroke-white/70" stroke-width="1.2">
-                                                <title>{{ $point['title'] }}</title>
-                                            </circle>
-                                        </a>
-                                    @endif
+                @if($primaryActive)
+                    @php $primaryIsOngoing = ($primaryActive['status'] ?? null) === 'ongoing'; @endphp
+                    <div
+                        class="surface-card relative w-full max-w-xl overflow-hidden border border-slate-200/80 bg-white/90 p-5 shadow-xl ring-1 ring-white/40 dark:border-slate-800/70 dark:bg-slate-900/80 dark:ring-slate-800 {{ $primaryIsOngoing ? 'ring-2 ring-orange-200 shadow-orange-100' : '' }}">
+                        <div
+                            class="absolute inset-x-5 top-0 h-[1px] bg-gradient-to-r from-emerald-400 via-sky-300 to-indigo-400 opacity-70">
+                        </div>
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-2">
+                                <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Primary route</p>
+                                <p class="text-xl font-semibold text-slate-900 dark:text-white">
+                                    {{ $primaryActive['title'] }}</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-300">
+                                    {{ $primaryActive['city'] ?? 'Unspecified location' }}</p>
+                            </div>
+                            <div class="text-right text-xs text-slate-600 dark:text-slate-300">
+                                <p class="pill-accent inline-flex">{{ ucfirst($primaryActive['status'] ?? 'Active') }}</p>
+                                <p class="mt-1 text-[11px] uppercase tracking-[0.12em]">TZ
+                                    {{ $primaryActive['timezone'] ?? 'TBD' }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-3 gap-3 text-xs text-slate-700 dark:text-slate-200">
+                            <div
+                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800">
+                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Depart</p>
+                                <p class="font-semibold">
+                                    {{ optional($primaryActive['start'])->toFormattedDateString() ?? '—' }}</p>
+                            </div>
+                            <div
+                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800">
+                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Arrive</p>
+                                <p class="font-semibold">
+                                    {{ optional($primaryActive['end'])->toFormattedDateString() ?? '—' }}</p>
+                            </div>
+                            <div
+                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800">
+                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Mood</p>
+                                <p class="font-semibold">{{ $primaryActive['mood'] ?? '✈︎ Ready' }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                            <div class="h-full rounded-full bg-emerald-500"
+                                style="width: {{ $primaryActive['progress'] }}%"></div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+                            <span>{{ optional($primaryActive['start'])->toFormattedDateString() ?? '—' }} →
+                                {{ optional($primaryActive['end'])->toFormattedDateString() ?? '—' }}</span>
+                            <a href="{{ $primaryActive['url'] }}"
+                                class="inline-flex items-center rounded-full bg-orange-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:bg-orange-700">
+                                Open trip
+                                <span class="ml-2">→</span>
+                            </a>
+                        </div>
+                        @if(!empty($primaryActive['city_stops']))
+                            <div class="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                                @foreach($primaryActive['city_stops'] as $stop)
+                                    <span
+                                        class="rounded-full bg-white px-3 py-1 font-semibold ring-1 ring-orange-100 dark:bg-slate-900 dark:ring-slate-800">
+                                        📍 {{ $stop['label'] ?? 'Stop' }}
+                                    </span>
                                 @endforeach
-                            </svg>
+                            </div>
                         @endif
                     </div>
-                @else
-                    <div class="grid h-64 place-items-center text-xs text-slate-500 dark:text-slate-400">Map asset missing.</div>
                 @endif
             </div>
         </section>
 
-        {{-- Active trips progress --}}
-        <section class="space-y-4">
-            <div class="space-y-1">
-                <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Ongoing journeys</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Current and upcoming legs with a single look at momentum.</p>
-            </div>
+        <div class="grid gap-6 xl:grid-cols-5">
+            <div class="space-y-6 xl:col-span-3">
+                <section class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Current manifest</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Everything in motion or on deck.</p>
+                        </div>
+                        <span class="pill-soft">{{ $activeJourneys->count() }} in play</span>
+                    </div>
 
-            <div class="space-y-4">
-                @forelse($activeJourneys as $trip)
-                    <article class="surface-card p-5 transition hover:-translate-y-1 hover:shadow-xl" data-trip-card="{{ $trip['id'] }}">
-                        <div class="flex gap-4">
-                            <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-                                <img src="{{ $trip['image'] }}" alt="{{ $trip['title'] }} cover" class="h-full w-full object-cover" loading="lazy">
-                                @if($trip['country_code'])
-                                    <span class="absolute bottom-1 left-1 flex h-5 w-7 items-center justify-center overflow-hidden rounded-md ring-1 ring-slate-200 dark:ring-slate-700">
-                                        <img src="{{ $trip['flag'] }}" alt="{{ $trip['country_code'] }} flag" class="h-full w-full object-cover">
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="flex-1 space-y-3">
-                                <div class="flex flex-wrap items-start justify-between gap-3">
-                                    <div class="space-y-1">
-                                        <p class="text-base font-semibold text-slate-900 dark:text-slate-50 line-clamp-1">{{ $trip['title'] }}</p>
-                                        <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{{ $trip['city'] ?? 'Unspecified location' }}</p>
-                                    </div>
-                                    <div class="flex flex-col items-end gap-1 text-right">
-                                        <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $trip['progress'] }}%</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ ucfirst($trip['status']) }}</p>
-                                        @if($trip['mood'])
-                                            <span class="rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-500/30 dark:text-emerald-200">{{ $trip['mood'] }}</span>
+                    <div class="space-y-4">
+                        @forelse($activeJourneys as $trip)
+                            <article
+                                class="surface-card relative overflow-hidden p-5 transition hover:-translate-y-0.5 hover:shadow-2xl"
+                                data-trip-card="{{ $trip['id'] }}">
+                                <div
+                                    class="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-emerald-400 via-sky-300 to-indigo-400 opacity-70">
+                                </div>
+                                <div class="flex gap-4">
+                                    <div
+                                        class="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                                        <img src="{{ $trip['image'] }}" alt="{{ $trip['title'] }} cover"
+                                            class="h-full w-full object-cover" loading="lazy">
+                                        @if($trip['country_code'])
+                                            <span
+                                                class="absolute bottom-1 left-1 flex h-5 w-7 items-center justify-center overflow-hidden rounded-md ring-1 ring-slate-200 dark:ring-slate-700">
+                                                <img src="{{ $trip['flag'] }}" alt="{{ $trip['country_code'] }} flag"
+                                                    class="h-full w-full object-cover" loading="lazy" decoding="async">
+                                            </span>
                                         @endif
                                     </div>
-                                </div>
-                                <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                                    <div class="h-full rounded-full bg-emerald-500" style="width: {{ $trip['progress'] }}%"></div>
-                                </div>
-                                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
-                                    <span>{{ optional($trip['start'])->toFormattedDateString() ?? '—' }} – {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</span>
-                                    <span class="rounded-full bg-slate-100 px-2 py-1 font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">TZ {{ $trip['timezone'] ?? 'TBD' }}</span>
-                                    <a href="{{ $trip['url'] }}" class="text-emerald-600 hover:text-emerald-500 dark:text-emerald-300 dark:hover:text-emerald-200">Open trip</a>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                @empty
-                    <p class="text-sm text-slate-400">No journeys in motion. Start planning your next memory.</p>
-                @endforelse
-            </div>
-        </section>
-
-        {{-- Past trips progress --}}
-        <section class="space-y-4">
-            <div class="space-y-1">
-                <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Completed journeys</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Recently finished trips to revisit at a glance.</p>
-            </div>
-
-            <div class="space-y-4">
-                @forelse($pastJourneys as $trip)
-                    <article class="surface-card p-5 transition hover:-translate-y-1 hover:shadow-xl" data-trip-card="{{ $trip['id'] }}">
-                        <div class="flex gap-4">
-                            <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-                                <img src="{{ $trip['image'] }}" alt="{{ $trip['title'] }} cover" class="h-full w-full object-cover" loading="lazy">
-                                @if($trip['country_code'])
-                                    <span class="absolute bottom-1 left-1 flex h-5 w-7 items-center justify-center overflow-hidden rounded-md ring-1 ring-slate-200 dark:ring-slate-700">
-                                        <img src="{{ $trip['flag'] }}" alt="{{ $trip['country_code'] }} flag" class="h-full w-full object-cover">
-                                    </span>
-                                @endif
-                            </div>
-                            <div class="flex-1 space-y-3">
-                                <div class="flex flex-wrap items-start justify-between gap-3">
-                                    <div class="space-y-1">
-                                        <p class="text-base font-semibold text-slate-900 dark:text-slate-50 line-clamp-1">{{ $trip['title'] }}</p>
-                                        <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{{ $trip['city'] ?? 'Unspecified location' }}</p>
+                                    <div class="flex-1 space-y-3">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="space-y-1">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">In flight
+                                                </p>
+                                                <p
+                                                    class="text-lg font-semibold text-slate-900 dark:text-slate-50 line-clamp-1">
+                                                    {{ $trip['title'] }}</p>
+                                                <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">
+                                                    {{ $trip['city'] ?? 'Unspecified location' }}</p>
+                                            </div>
+                                            <div class="flex flex-col items-end gap-2 text-right">
+                                                <span class="pill-soft">{{ ucfirst($trip['status']) }}</span>
+                                                @if($trip['mood'])
+                                                    <span class="pill-accent">{{ $trip['mood'] }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-3 text-xs text-slate-600 dark:text-slate-400">
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Depart</p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ optional($trip['start'])->toFormattedDateString() ?? '—' }}</p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Arrive</p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Timezone
+                                                </p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ $trip['timezone'] ?? 'TBD' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                            <div class="h-full rounded-full bg-emerald-500"
+                                                style="width: {{ $trip['progress'] }}%"></div>
+                                        </div>
+                                        @if(!empty($trip['city_stops']))
+                                            <div
+                                                class="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                                                @foreach($trip['city_stops'] as $stop)
+                                                    <span
+                                                        class="rounded-full bg-white px-3 py-1 font-semibold ring-1 ring-orange-100 dark:bg-slate-900 dark:ring-slate-800">
+                                                        📍 {{ $stop['label'] ?? 'Stop' }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                        <div
+                                            class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                            <span>{{ optional($trip['start'])->toFormattedDateString() ?? '—' }} →
+                                                {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</span>
+                                            <a href="{{ $trip['url'] }}"
+                                                class="inline-flex items-center rounded-full bg-orange-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:bg-orange-700">
+                                                Open trip <span class="ml-1">→</span>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div class="flex flex-col items-end gap-1 text-right">
-                                        <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $trip['progress'] }}</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">Completed</p>
-                                        @if($trip['mood'])
-                                            <span class="rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-500/30">{{ $trip['mood'] }}</span>
+                                </div>
+                            </article>
+                        @empty
+                            <p class="text-sm text-slate-400">No journeys in motion. Plot the next takeoff.</p>
+                        @endforelse
+                    </div>
+                </section>
+
+                <section class="space-y-3" data-past-journeys>
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Completed logbook</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Three most recent by default. Expand
+                                to relive more.</p>
+                        </div>
+                        <span class="pill-soft">{{ $pastCollection->count() }} recorded</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        @forelse($pastPreview as $trip)
+                            <article
+                                class="surface-card relative overflow-hidden p-5 transition hover:-translate-y-0.5 hover:shadow-2xl"
+                                data-trip-card="{{ $trip['id'] }}">
+                                <div
+                                    class="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-slate-400 via-emerald-300 to-sky-400 opacity-70">
+                                </div>
+                                <div class="flex gap-4">
+                                    <div
+                                        class="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                                        <img src="{{ $trip['image'] }}" alt="{{ $trip['title'] }} cover"
+                                            class="h-full w-full object-cover" loading="lazy">
+                                        @if($trip['country_code'])
+                                            <span
+                                                class="absolute bottom-1 left-1 flex h-5 w-7 items-center justify-center overflow-hidden rounded-md ring-1 ring-slate-200 dark:ring-slate-700">
+                                                <img src="{{ $trip['flag'] }}" alt="{{ $trip['country_code'] }} flag"
+                                                    class="h-full w-full object-cover" loading="lazy" decoding="async">
+                                            </span>
                                         @endif
                                     </div>
+                                    <div class="flex-1 space-y-3">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="space-y-1">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Completed
+                                                </p>
+                                                <p
+                                                    class="text-lg font-semibold text-slate-900 dark:text-slate-50 line-clamp-1">
+                                                    {{ $trip['title'] }}</p>
+                                                <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">
+                                                    {{ $trip['city'] ?? 'Unspecified location' }}</p>
+                                            </div>
+                                            <div class="flex flex-col items-end gap-2 text-right">
+                                                <span class="pill-soft">100%</span>
+                                                @if($trip['mood'])
+                                                    <span class="pill-accent">{{ $trip['mood'] }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-3 text-xs text-slate-600 dark:text-slate-400">
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Departed
+                                                </p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ optional($trip['start'])->toFormattedDateString() ?? '—' }}</p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Returned
+                                                </p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Status</p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ ucfirst($trip['status']) }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                            <div class="h-full rounded-full bg-slate-500" style="width: 100%"></div>
+                                        </div>
+                                        <div
+                                            class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                            <span>{{ optional($trip['start'])->toFormattedDateString() ?? '—' }} →
+                                                {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</span>
+                                            <a href="{{ $trip['url'] }}"
+                                                class="text-emerald-600 hover:text-emerald-500 dark:text-emerald-300 dark:hover:text-emerald-200">View
+                                                trip</a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                                    <div class="h-full rounded-full bg-emerald-600" style="width: {{ $trip['progress'] }}%"></div>
+                            </article>
+                        @empty
+                            <p class="text-sm text-slate-400">Finished trips will appear here after landing.</p>
+                        @endforelse
+
+                        @foreach($pastOverflow as $trip)
+                            <article
+                                class="surface-card relative hidden overflow-hidden p-5 transition hover:-translate-y-0.5 hover:shadow-2xl"
+                                data-past-extra data-trip-card="{{ $trip['id'] }}">
+                                <div
+                                    class="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-slate-400 via-emerald-300 to-sky-400 opacity-70">
                                 </div>
-                                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
-                                    <span>{{ optional($trip['start'])->toFormattedDateString() ?? '—' }} – {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</span>
-                                    <a href="{{ $trip['url'] }}" class="text-emerald-600 hover:text-emerald-500 dark:text-emerald-300 dark:hover:text-emerald-200">View notes</a>
+                                <div class="flex gap-4">
+                                    <div
+                                        class="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                                        <img src="{{ $trip['image'] }}" alt="{{ $trip['title'] }} cover"
+                                            class="h-full w-full object-cover" loading="lazy">
+                                        @if($trip['country_code'])
+                                            <span
+                                                class="absolute bottom-1 left-1 flex h-5 w-7 items-center justify-center overflow-hidden rounded-md ring-1 ring-slate-200 dark:ring-slate-700">
+                                                <img src="{{ $trip['flag'] }}" alt="{{ $trip['country_code'] }} flag"
+                                                    class="h-full w-full object-cover" loading="lazy" decoding="async">
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 space-y-3">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="space-y-1">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Completed
+                                                </p>
+                                                <p
+                                                    class="text-lg font-semibold text-slate-900 dark:text-slate-50 line-clamp-1">
+                                                    {{ $trip['title'] }}</p>
+                                                <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">
+                                                    {{ $trip['city'] ?? 'Unspecified location' }}</p>
+                                            </div>
+                                            <div class="flex flex-col items-end gap-2 text-right">
+                                                <span class="pill-soft">100%</span>
+                                                @if($trip['mood'])
+                                                    <span class="pill-accent">{{ $trip['mood'] }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-3 text-xs text-slate-600 dark:text-slate-400">
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Departed
+                                                </p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ optional($trip['start'])->toFormattedDateString() ?? '—' }}</p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Returned
+                                                </p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</p>
+                                            </div>
+                                            <div
+                                                class="rounded-2xl bg-white/70 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+                                                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-500">Status</p>
+                                                <p class="font-semibold text-slate-900 dark:text-white">
+                                                    {{ ucfirst($trip['status']) }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                            <div class="h-full rounded-full bg-slate-500" style="width: 100%"></div>
+                                        </div>
+                                        <div
+                                            class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                            <span>{{ optional($trip['start'])->toFormattedDateString() ?? '—' }} →
+                                                {{ optional($trip['end'])->toFormattedDateString() ?? '—' }}</span>
+                                            <a href="{{ $trip['url'] }}"
+                                                class="text-emerald-600 hover:text-emerald-500 dark:text-emerald-300 dark:hover:text-emerald-200">View
+                                                trip</a>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </article>
+                        @endforeach
+                    </div>
+
+                    @if($pastOverflow->isNotEmpty())
+                        <div class="pt-1">
+                            <button type="button" data-past-toggle data-collapsed-label="Show more journeys"
+                                data-expanded-label="Hide history"
+                                class="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-100 shadow-lg transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400">
+                                Show more journeys
+                            </button>
                         </div>
-                    </article>
-                @empty
-                    <p class="text-sm text-slate-400">Finished trips will live here once you complete them.</p>
-                @endforelse
+                    @endif
+                </section>
             </div>
-        </section>
+
+            <div class="space-y-6 xl:col-span-2">
+                <section class="surface-card p-5 ring-1 ring-slate-200/70 dark:ring-slate-800">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Global radar</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">OpenStreetMap with theme-aware tiles ·
+                                {{ $mapPoints->count() }} pins</p>
+                        </div>
+                        <div
+                            class="flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+                            <span class="pill-soft">Light</span>
+                            <span class="pill-soft">Dark</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-[420px] overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-50 shadow-inner ring-1 ring-slate-200/60 dark:border-slate-800 dark:bg-slate-950 dark:ring-slate-800"
+                        data-journey-map data-map-points='@json($mapPoints)'>
+                        <div class="grid h-full place-items-center text-xs text-slate-500 dark:text-slate-400">Loading
+                            flight map…</div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 </x-app-layout>

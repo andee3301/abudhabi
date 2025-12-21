@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use App\Http\Middleware\RequireAbilityToken;
+use App\Http\Middleware\SetCacheHeaders as CustomCacheHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'cache.headers' => SetCacheHeaders::class,
+            'cache.custom' => CustomCacheHeaders::class,
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
             'ability.token' => RequireAbilityToken::class,

@@ -43,6 +43,8 @@ class TripResource extends JsonResource
             'itinerary_items' => ItineraryItemResource::collection($this->whenLoaded('itineraryItems')),
             'itineraries' => ItineraryResource::collection($this->whenLoaded('itineraries')),
             'journal_entries' => JournalEntryResource::collection($this->whenLoaded('journalEntries')),
+            'trip_notes' => TripNoteResource::collection($this->whenLoaded('tripNotes')),
+            'timeline_entries' => TripTimelineResource::collection($this->whenLoaded('timelineEntries')),
             'country_visits' => CountryVisitResource::collection($this->whenLoaded('countryVisits')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

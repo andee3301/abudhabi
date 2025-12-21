@@ -3,6 +3,10 @@ export function initThemeToggle() {
     const root = document.documentElement;
     const storageKey = 'treep-theme';
 
+    const emitThemeChange = (isDark) => {
+        document.dispatchEvent(new CustomEvent('theme:changed', { detail: { isDark } }));
+    };
+
     const updateIcon = (isDark) => {
         if (!toggle) return;
         toggle.textContent = isDark ? '☀️' : '🌙';
@@ -11,12 +15,13 @@ export function initThemeToggle() {
 
     const applyStored = () => {
         const stored = localStorage.getItem(storageKey) ?? localStorage.getItem('tripkit-theme');
-        const prefersDark = stored === null ? true : stored === 'dark';
+        const prefersDark = stored ? stored === 'dark' : false;
         root.classList.toggle('dark', prefersDark);
         updateIcon(prefersDark);
         if (stored && !localStorage.getItem(storageKey)) {
             localStorage.setItem(storageKey, stored);
         }
+        emitThemeChange(prefersDark);
     };
 
     applyStored();
@@ -28,5 +33,6 @@ export function initThemeToggle() {
         root.classList.toggle('dark', willUseDark);
         localStorage.setItem(storageKey, willUseDark ? 'dark' : 'light');
         updateIcon(willUseDark);
+        emitThemeChange(willUseDark);
     });
 }

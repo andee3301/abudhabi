@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\ItineraryItemController;
 use App\Http\Controllers\Api\JournalEntryController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TripController as ApiTripController;
+use App\Http\Controllers\Api\TripNoteController;
+use App\Http\Controllers\Api\TripTimelineController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/token', [AuthTokenController::class, 'store']);
@@ -33,6 +35,18 @@ Route::middleware(['auth:sanctum', 'ability.token'])->group(function () {
 
     Route::get('/trips/{trip}/journal', [JournalEntryController::class, 'index'])->middleware('abilities:journal:read');
     Route::post('/trips/{trip}/journal', [JournalEntryController::class, 'store'])->middleware('abilities:journal:write');
+
+    Route::get('/trips/{trip}/notes', [TripNoteController::class, 'index'])->middleware('abilities:trips:read');
+    Route::post('/trips/{trip}/notes', [TripNoteController::class, 'store'])->middleware('abilities:trips:write');
+    Route::get('/notes/{tripNote}', [TripNoteController::class, 'show'])->middleware('abilities:trips:read');
+    Route::put('/notes/{tripNote}', [TripNoteController::class, 'update'])->middleware('abilities:trips:write');
+    Route::delete('/notes/{tripNote}', [TripNoteController::class, 'destroy'])->middleware('abilities:trips:write');
+
+    Route::get('/trips/{trip}/timeline', [TripTimelineController::class, 'index'])->middleware('abilities:trips:read');
+    Route::post('/trips/{trip}/timeline', [TripTimelineController::class, 'store'])->middleware('abilities:trips:write');
+    Route::get('/timeline/{tripTimeline}', [TripTimelineController::class, 'show'])->middleware('abilities:trips:read');
+    Route::put('/timeline/{tripTimeline}', [TripTimelineController::class, 'update'])->middleware('abilities:trips:write');
+    Route::delete('/timeline/{tripTimeline}', [TripTimelineController::class, 'destroy'])->middleware('abilities:trips:write');
 
     Route::get('/stats/overview', StatsController::class)->middleware('abilities:stats:read');
 });

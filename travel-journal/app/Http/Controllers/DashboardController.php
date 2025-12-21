@@ -28,7 +28,7 @@ class DashboardController extends Controller
             $recentTrips = Trip::with(['region', 'city'])
                 ->whereBelongsTo($user)
                 ->orderByDesc('end_date')
-                ->limit(3)
+                ->orderByDesc('start_date')
                 ->get();
 
             $currentTrip = Trip::with([
@@ -109,6 +109,9 @@ class DashboardController extends Controller
                 'start' => $trip->start_date,
                 'end' => $trip->end_date,
                 'timezone' => $trip->timezone,
+                'city_stops' => $trip->city_stops,
+                'wishlist' => $trip->wishlist_locations,
+                'location_overview' => $trip->location_overview,
             ];
         };
 

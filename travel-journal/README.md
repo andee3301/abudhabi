@@ -57,4 +57,3 @@ Laravel 12 + Livewire 3 playground for planning trips, journaling, and sharing m
 
 ## Documentation
 - Marketing asset sources and licensing: `docs/marketing-assets.md`.
-- Curated sources for SVGs, photography, video, and audio: `docs/media-sources.md`.

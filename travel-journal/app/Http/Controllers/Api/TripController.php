@@ -20,7 +20,7 @@ class TripController extends Controller
     public function index()
     {
         $query = Trip::with(['region', 'city'])
-            ->withCount(['journalEntries', 'itineraryItems'])
+            ->withCount(['journalEntries', 'itineraryItems', 'tripNotes', 'timelineEntries'])
             ->whereBelongsTo(request()->user())
             ->when(request('search'), function ($query, $search) {
                 $query->where(function ($query) use ($search) {
@@ -71,6 +71,8 @@ class TripController extends Controller
                 'city',
                 'itineraries.items',
                 'itineraries.city',
+                'tripNotes',
+                'timelineEntries',
             ])
         );
     }

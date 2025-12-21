@@ -34,14 +34,19 @@ class Trip extends Model
         'status',
         'companion_name',
         'notes',
+        'location_overview',
         'cover_image_url',
         'tags',
+        'city_stops',
+        'wishlist_locations',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'tags' => 'array',
+        'city_stops' => 'array',
+        'wishlist_locations' => 'array',
     ];
 
     public function user()
@@ -72,6 +77,16 @@ class Trip extends Model
     public function itineraries()
     {
         return $this->hasMany(Itinerary::class);
+    }
+
+    public function tripNotes()
+    {
+        return $this->hasMany(TripNote::class);
+    }
+
+    public function timelineEntries()
+    {
+        return $this->hasMany(TripTimeline::class);
     }
 
     public function housing()

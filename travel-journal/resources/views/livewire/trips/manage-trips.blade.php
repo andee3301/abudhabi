@@ -14,7 +14,7 @@
                 />
             </div>
             <select
-                wire:model="status"
+                wire:model="filterStatus"
                 class="rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
                 <option value="all">All statuses</option>
@@ -26,8 +26,20 @@
     </div>
 
     <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-        <h3 class="text-lg font-semibold text-gray-900">Create a trip</h3>
-        <form wire:submit.prevent="createTrip" class="mt-4 space-y-4">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ $editingTripId ? 'Edit trip' : 'Create a trip' }}</h3>
+                <p class="text-sm text-gray-500">
+                    {{ $editingTripId ? 'Update details, status, and timing. Only one trip can be ongoing.' : 'Add a new journey. Mark it ongoing to feature it at the top.' }}
+                </p>
+            </div>
+            @if($editingTripId)
+                <button type="button" wire:click="cancelEditing" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                    Cancel
+                </button>
+            @endif
+        </div>
+        <form wire:submit.prevent="{{ $editingTripId ? 'updateTrip' : 'createTrip' }}" class="mt-4 space-y-4">
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <label class="text-sm font-medium text-gray-700">Title</label>
@@ -86,12 +98,12 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Status</label>
-                    <select wire:model.defer="status" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <select wire:model.defer="formStatus" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="planned">Planned</option>
                         <option value="ongoing">Ongoing</option>
                         <option value="completed">Completed</option>
                     </select>
-                    @error('status') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    @error('formStatus') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="grid gap-4 md:grid-cols-2">
@@ -101,14 +113,35 @@
                     @error('companion_name') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="text-sm font-medium text-gray-700">Notes</label>
+                    <label class="text-sm font-medium text-gray-700">Trip notes</label>
                     <textarea wire:model.defer="notes" rows="2" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Flight, lodging, day-one ideas..."></textarea>
                     @error('notes') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
             </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Location overview</label>
+                    <textarea wire:model.defer="location_overview" rows="2" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="What to expect about this journey's destinations."></textarea>
+                    @error('location_overview') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <label class="text-sm font-medium text-gray-700">City route (multi-city)</label>
+                        <textarea wire:model.defer="cityStopsInput" rows="2" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Tokyo (JP), Osaka (JP), Kyoto (JP)"></textarea>
+                        <p class="mt-1 text-xs text-gray-500">Comma or newline separated. Add country code in parentheses to improve matching.</p>
+                        @error('cityStopsInput') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-sm font-medium text-gray-700">Locations I want to visit</label>
+                        <textarea wire:model.defer="wishlistInput" rows="2" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Mount Koya, Gion backstreets, Naoshima art sites"></textarea>
+                        <p class="mt-1 text-xs text-gray-500">Comma or newline separated. Shows on the trip page.</p>
+                        @error('wishlistInput') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
             <div class="flex items-center gap-3">
                 <button type="submit" class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                    Save trip
+                    {{ $editingTripId ? 'Save changes' : 'Save trip' }}
                 </button>
                 @if (session('status'))
                     <p class="text-sm text-green-700">{{ session('status') }}</p>
@@ -119,23 +152,50 @@
 
     <div class="grid gap-4 md:grid-cols-2">
         @forelse($trips as $trip)
-            <a href="{{ route('trips.show', $trip) }}" class="block rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:shadow-md">
+            <div class="relative rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:-translate-y-0.5 hover:shadow-lg {{ $trip->status === 'ongoing' ? 'ring-2 ring-indigo-400/70 shadow-indigo-100' : '' }}">
+                @if($trip->status === 'ongoing')
+                    <div class="absolute right-4 top-4 rounded-full bg-indigo-100 px-3 py-1 text-[11px] font-semibold text-indigo-700">
+                        Now
+                    </div>
+                @endif
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <p class="text-xs uppercase tracking-wide text-gray-500">{{ $trip->location_label }}</p>
                         <h4 class="text-lg font-semibold text-gray-900">{{ $trip->title }}</h4>
                     </div>
-                    <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                        {{ str_replace('_', ' ', ucfirst($trip->status)) }}
+                    <span class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                        {{ ucfirst($trip->status) }}
+                        @if($trip->status === 'ongoing')
+                            <span aria-hidden="true">🧭</span>
+                        @endif
                     </span>
                 </div>
-                <div class="mt-3 text-sm text-gray-600">
+                <div class="mt-3 space-y-1 text-sm text-gray-600">
                     <p>{{ $trip->start_date?->toFormattedDateString() }} → {{ $trip->end_date?->toFormattedDateString() }}</p>
-                    <p class="mt-1 text-xs text-gray-500">
-                        Notes: {{ \Illuminate\Support\Str::limit($trip->notes, 40) }}
+                    <p class="text-xs text-gray-500">
+                        Notes: {{ \Illuminate\Support\Str::limit($trip->notes, 80) }}
                     </p>
                 </div>
-            </a>
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <a href="{{ route('trips.show', $trip) }}" class="inline-flex flex-1 items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                        Open trip <span class="ml-2">→</span>
+                    </a>
+                    <button type="button" wire:click="startEditing({{ $trip->id }})" class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-indigo-400 hover:text-indigo-700">
+                        Edit
+                    </button>
+                    <button type="button" wire:click="deleteTrip({{ $trip->id }})" class="inline-flex items-center rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50">
+                        Delete
+                    </button>
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                    <button type="button" wire:click="markOngoing({{ $trip->id }})" class="rounded-full border border-indigo-200 px-3 py-1 font-semibold text-indigo-700 transition hover:bg-indigo-50">
+                        Set ongoing
+                    </button>
+                    <button type="button" wire:click="markCompleted({{ $trip->id }})" class="rounded-full border border-emerald-200 px-3 py-1 font-semibold text-emerald-700 transition hover:bg-emerald-50">
+                        Mark completed
+                    </button>
+                </div>
+            </div>
         @empty
             <div class="rounded-xl bg-white p-6 text-sm text-gray-500 ring-1 ring-gray-100">
                 No trips yet. Create your first itinerary above.

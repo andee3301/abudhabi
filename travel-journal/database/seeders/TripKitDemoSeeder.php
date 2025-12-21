@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\City;
 use App\Models\JournalEntry;
 use App\Models\Trip;
+use App\Models\TripNote;
+use App\Models\TripTimeline;
 use App\Models\User;
 use App\Models\UserHomeSetting;
 use App\Models\WeatherSnapshot;
@@ -704,6 +706,79 @@ class TripKitDemoSeeder extends Seeder
                         'body' => $entry['body'],
                         'mood' => $entry['mood'] ?? $journey['mood'],
                         'photo_urls' => $entry['photos'] ?? [],
+                    ]
+                );
+            }
+
+            $noteTemplates = [
+                [
+                    'title' => 'Field recap',
+                    'body' => 'Quick recap captured for the offline demo. Replace or extend as needed.',
+                    'day_offset' => 0,
+                    'is_pinned' => true,
+                ],
+                [
+                    'title' => 'Packing notes',
+                    'body' => 'Gear, charging kits, and documents to keep nearby.',
+                    'day_offset' => 1,
+                    'is_pinned' => false,
+                ],
+            ];
+
+            foreach ($noteTemplates as $note) {
+                $noteDate = (clone $start)->addDays($note['day_offset'] ?? 0);
+
+                TripNote::updateOrCreate(
+                    [
+                        'trip_id' => $trip->id,
+                        'title' => $note['title'],
+                    ],
+                    [
+                        'user_id' => $demoUser->id,
+                        'body' => $note['body'],
+                        'note_date' => $noteDate,
+                        'is_pinned' => $note['is_pinned'] ?? false,
+                        'tags' => $trip->tags ?? [],
+                    ]
+                );
+            }
+
+            $timelineTemplates = [
+                [
+                    'title' => 'Flight booked',
+                    'description' => 'Tickets locked in for the main leg.',
+                    'day_offset' => -7,
+                    'type' => 'planning',
+                ],
+                [
+                    'title' => 'Landed and unpacked',
+                    'description' => 'Basecamp set; ready to log the first day.',
+                    'day_offset' => 0,
+                    'type' => 'arrival',
+                ],
+                [
+                    'title' => 'Highlight recorded',
+                    'description' => 'Captured a memorable stop for the trip timeline.',
+                    'day_offset' => 2,
+                    'type' => 'highlight',
+                ],
+            ];
+
+            foreach ($timelineTemplates as $event) {
+                $occurredAt = (clone $start)->addDays($event['day_offset'] ?? 0)->setTime(10, 0);
+
+                TripTimeline::updateOrCreate(
+                    [
+                        'trip_id' => $trip->id,
+                        'title' => $event['title'],
+                    ],
+                    [
+                        'user_id' => $demoUser->id,
+                        'description' => $event['description'],
+                        'occurred_at' => $occurredAt,
+                        'type' => $event['type'] ?? null,
+                        'tags' => $trip->tags ?? [],
+                        'metadata' => ['seeded' => true],
                     ]
                 );
             }

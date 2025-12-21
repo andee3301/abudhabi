@@ -8,4 +8,18 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: [
+                        '@alpinejs/collapse',
+                        '@alpinejs/focus',
+                        'alpinejs',
+                    ],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 600,
+    },
 });

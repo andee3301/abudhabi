@@ -10,6 +10,21 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
+    @php
+        $gaId = config('services.google_analytics.measurement_id');
+        $gaDebug = config('services.google_analytics.debug_mode');
+    @endphp
+
+    @if ($gaId && !app()->environment('testing'))
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '{{ $gaId }}', { debug_mode: {{ $gaDebug ? 'true' : 'false' }} });
+        </script>
+    @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -41,53 +56,6 @@
             ['key' => 'flag_jp', 'name' => 'Japan', 'entries' => '5 entries', 'alt' => 'Japan flag'],
             ['key' => 'flag_mx', 'name' => 'Mexico', 'entries' => '3 entries', 'alt' => 'Mexico flag'],
         ];
-        $mediaSourceCategories = [
-            [
-                'title' => 'Photography',
-                'use' => 'Hero banners, gallery, avatars',
-                'items' => [
-                    ['name' => 'Unsplash', 'url' => 'https://unsplash.com', 'note' => 'High-quality travel shots; no attribution required.'],
-                    ['name' => 'Pexels', 'url' => 'https://pexels.com', 'note' => 'Strong city coverage; free commercial use.'],
-                    ['name' => 'Pixabay', 'url' => 'https://pixabay.com', 'note' => 'Photos + vectors; filter to CC0/Free items.'],
-                ],
-            ],
-            [
-                'title' => 'Illustrations & SVG',
-                'use' => 'Icons, onboarding, empty states',
-                'items' => [
-                    ['name' => 'unDraw', 'url' => 'https://undraw.co/illustrations', 'note' => 'Color-tunable SVGs; no attribution.'],
-                    ['name' => 'Heroicons', 'url' => 'https://heroicons.com', 'note' => 'MIT-licensed outline/solid icons.'],
-                    ['name' => 'Lucide', 'url' => 'https://lucide.dev', 'note' => 'Feather-style line icons; ISC license.'],
-                ],
-            ],
-            [
-                'title' => 'Maps & Flags',
-                'use' => 'World canvas, geo callouts',
-                'items' => [
-                    ['name' => 'Wikimedia Commons', 'url' => 'https://commons.wikimedia.org/wiki/Category:SVG_maps', 'note' => 'Neutral base maps; check attribution.'],
-                    ['name' => 'Natural Earth', 'url' => 'https://www.naturalearthdata.com', 'note' => 'Public-domain map data for custom SVGs.'],
-                    ['name' => 'FlagCDN', 'url' => 'https://flagcdn.com', 'note' => 'Consistent SVG/PNG country flags.'],
-                ],
-            ],
-            [
-                'title' => 'Patterns & Gradients',
-                'use' => 'Section dividers, cards',
-                'items' => [
-                    ['name' => 'Haikei', 'url' => 'https://haikei.app', 'note' => 'Organic SVG blobs and waves.'],
-                    ['name' => 'HeroPatterns', 'url' => 'https://heropatterns.com', 'note' => 'Repeating SVG textures; permissive license.'],
-                    ['name' => 'uiGradients', 'url' => 'https://uigradients.com', 'note' => 'Curated gradient palettes.'],
-                ],
-            ],
-            [
-                'title' => 'Video & Audio',
-                'use' => 'Background loops, ambience',
-                'items' => [
-                    ['name' => 'Coverr', 'url' => 'https://coverr.co', 'note' => 'Attribution-free loops for headers.'],
-                    ['name' => 'Pexels Video', 'url' => 'https://www.pexels.com/video', 'note' => 'Travel clips under the Pexels license.'],
-                    ['name' => 'Freesound', 'url' => 'https://freesound.org', 'note' => 'CC0 ambience; filter for attribution-free.'],
-                ],
-            ],
-        ];
     @endphp
     <div class="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-sky-50">
         <div class="pointer-events-none absolute inset-0 opacity-60">
@@ -116,38 +84,7 @@
             </header>
 
             <main class="mt-16 flex flex-1 flex-col gap-16 lg:mt-20 lg:flex-row">
-                <div class="lg:w-1/2">
-                    <div
-                        class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-white/80">
-                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                        Live demo workspace seeded with sample journeys
-                    </div>
-                    <h1 class="mt-6 text-4xl font-semibold text-gray-900 sm:text-5xl">Plan, log, and relive every leg of
-                        your adventures.</h1>
-                    <p class="mt-4 text-lg text-gray-600">Treep keeps itineraries, weather snapshots, travel
-                        companions, and reflective journal notes in one calm interface. Capture the story while the
-                        details are still fresh.</p>
-                    <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}"
-                            class="rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/40 hover:bg-indigo-700"
-                            wire:navigate>Create free account</a>
-                        <a href="{{ route('login') }}"
-                            class="rounded-2xl border border-transparent bg-white/70 px-6 py-3 text-sm font-semibold text-gray-900 shadow ring-1 ring-white/60 hover:text-indigo-600"
-                            wire:navigate>Use demo login</a>
-                    </div>
-
-                    <div class="mt-6 flex flex-wrap gap-3 text-xs font-semibold text-gray-600">
-                        @foreach ($flagPills as $pill)
-                            <div class="pill gap-2 border border-white/60 bg-white/80">
-                                <img src="{{ $marketingAssets->url($pill['key']) }}" alt="{{ $pill['alt'] }}"
-                                    class="h-4 w-6 rounded-sm object-cover">
-                                {{ $pill['label'] }}
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <dl class="mt-10 grid gap-6 sm:grid-cols-3">
-                        <div class="rounded-2xl bg-white/80 p-4 shadow ring-1 ring-white/60">
+                <div class="lg:w-1/2 space-y-6">
                             <dt class="text-xs uppercase tracking-wide text-gray-500">Trips tracked</dt>
                             <dd class="mt-1 text-3xl font-semibold text-gray-900">120+</dd>
                         </div>
@@ -166,7 +103,8 @@
                     <div class="glass-card relative overflow-hidden p-6 text-sm text-gray-700">
                         <img src="{{ $marketingAssets->url('world_map_wireframe') }}"
                             alt="{{ $marketingAssets->metadata('world_map_wireframe', 'alt') ?? 'World map wireframe' }}"
-                            class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30">
+                            class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+                            loading="lazy" decoding="async">
                         <div class="relative">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -198,7 +136,7 @@
                                     <div
                                         class="flex items-center gap-3 rounded-2xl bg-white/85 p-3 shadow ring-1 ring-white/60">
                                         <img src="{{ $marketingAssets->url($city['key']) }}" alt="{{ $city['alt'] }}"
-                                            class="h-8 w-12 rounded-lg object-cover">
+                                            class="h-8 w-12 rounded-lg object-cover" loading="lazy" decoding="async">
                                         <div>
                                             <p class="text-sm font-semibold text-gray-900">{{ $city['city'] }}</p>
                                             <p class="text-xs text-gray-500">{{ $city['meta'] }}</p>
@@ -223,13 +161,13 @@
                             <div class="mt-4 flex gap-3">
                                 @foreach ($galleryStack as $frame)
                                     <img src="{{ $marketingAssets->url($frame['key']) }}" alt="{{ $frame['alt'] }}"
-                                        class="{{ $frame['classes'] }}">
+                                        class="{{ $frame['classes'] }}" loading="lazy" decoding="async">
                                 @endforeach
                             </div>
                             <div class="mt-4 flex items-center -space-x-3">
                                 @foreach ($avatarStack as $avatar)
                                     <img src="{{ $marketingAssets->url($avatar['key']) }}" alt="{{ $avatar['alt'] }}"
-                                        class="h-10 w-10 rounded-full border-2 border-white object-cover">
+                                        class="h-10 w-10 rounded-full border-2 border-white object-cover" loading="lazy" decoding="async">
                                 @endforeach
                                 <span class="ml-4 text-xs text-gray-500">Shared albums stay in sync.</span>
                             </div>
@@ -237,13 +175,13 @@
 
                         <div class="rounded-3xl bg-gradient-to-br from-indigo-600 to-sky-500 p-5 text-white shadow-xl">
                             <p class="text-sm font-semibold">Country highlights</p>
-                            <p class="mt-2 text-xs text-indigo-100">Pin multiple stamps onto your world canvas.</p>
+                            <p class="mt-2 text-xs text-indigo-100">Pin multiple stamps without any global map overlays.</p>
                             <div class="mt-4 space-y-3 text-sm">
                                 @foreach ($countryHighlights as $country)
                                     <div class="flex items-center justify-between rounded-2xl bg-white/15 px-3 py-2">
                                         <span class="inline-flex items-center gap-2">
                                             <img src="{{ $marketingAssets->url($country['key']) }}"
-                                                alt="{{ $country['alt'] }}" class="h-4 w-6 rounded-sm object-cover">
+                                                alt="{{ $country['alt'] }}" class="h-4 w-6 rounded-sm object-cover" loading="lazy" decoding="async">
                                             {{ $country['name'] }}
                                         </span>
                                         <span class="text-xs text-indigo-100">{{ $country['entries'] }}</span>
@@ -251,60 +189,12 @@
                                 @endforeach
                             </div>
                             <div class="mt-6 rounded-2xl bg-white/10 p-3 text-xs text-indigo-50">
-                                World map heat overlays show where you have been and what is next.
+                                Focus on trip notes and milestones instead of a world map view.
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
-
-            <section class="mt-16 rounded-3xl bg-white/80 p-6 shadow-xl ring-1 ring-white/60">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-wide text-gray-500">Media sourcing</p>
-                        <h2 class="text-2xl font-semibold text-gray-900">Curated SVG, photo, video, and audio providers</h2>
-                        <p class="text-sm text-gray-600">Use these vetted libraries to keep the site populated with on-brand visuals and clean licensing.</p>
-                    </div>
-                    <a href="{{ route('docs.media-sources') }}" class="pill-primary" target="_blank" rel="noreferrer">Read full playbook</a>
-                </div>
-
-                <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($mediaSourceCategories as $category)
-                        <div class="rounded-2xl bg-gray-50/80 p-4 ring-1 ring-white/80">
-                            <p class="text-xs uppercase tracking-wide text-gray-500">{{ $category['use'] }}</p>
-                            <h3 class="mt-1 text-lg font-semibold text-gray-900">{{ $category['title'] }}</h3>
-                            <ul class="mt-3 space-y-2 text-sm text-gray-700">
-                                @foreach ($category['items'] as $item)
-                                    <li class="flex gap-2">
-                                        <span class="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
-                                        <div>
-                                            <a href="{{ $item['url'] }}" class="font-semibold text-indigo-600 hover:text-indigo-700" target="_blank" rel="noreferrer">
-                                                {{ $item['name'] }}
-                                            </a>
-                                            <p class="text-xs text-gray-600">{{ $item['note'] }}</p>
-                                        </div>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-6 flex flex-wrap gap-3 text-xs text-gray-600">
-                    <span class="pill gap-2 border border-white/60 bg-white/90">
-                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                        Keep hero JPGs under 200KB
-                    </span>
-                    <span class="pill gap-2 border border-white/60 bg-white/90">
-                        <span class="h-2 w-2 rounded-full bg-indigo-400"></span>
-                        Prefer SVG for icons and maps
-                    </span>
-                    <span class="pill gap-2 border border-white/60 bg-white/90">
-                        <span class="h-2 w-2 rounded-full bg-amber-400"></span>
-                        Note attribution when CC BY applies
-                    </span>
-                </div>
-            </section>
 
             <footer
                 class="mt-16 flex flex-col gap-6 border-t border-white/50 py-6 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
