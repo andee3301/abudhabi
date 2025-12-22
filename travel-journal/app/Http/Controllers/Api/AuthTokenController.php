@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -36,14 +37,14 @@ class AuthTokenController extends Controller
             'abilities.*' => ['string', Rule::in($this->allowedAbilities)],
         ]);
 
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        /** @var \App\Models\User|null $user */
+        $user = User::query()->where('email', $credentials['email'])->first();
+
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-
-        /** @var \App\Models\User $user */
-        $user = $request->user();
 
         $abilities = $request->has('abilities')
             ? (array) $request->input('abilities')

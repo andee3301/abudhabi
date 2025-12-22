@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RegionSeeder::class,
             MarketingAssetSeeder::class,
             TripKitDemoSeeder::class,
+            TripEventSeeder::class,
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Livewire\Trips;
 use App\Models\JournalEntry;
 use App\Models\Media;
 use App\Models\Trip;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -37,7 +38,7 @@ class JournalTimeline extends Component
 
     public function mount(Trip $trip): void
     {
-        abort_unless($trip->user_id === auth()->id(), 403);
+        abort_unless($trip->user_id === Auth::id(), 403);
         $this->trip = $trip;
     }
 
@@ -45,14 +46,14 @@ class JournalTimeline extends Component
     {
         $validated = $this->validate();
 
+        $now = now($this->trip->timezone ?? config('app.timezone'));
+
         $entry = JournalEntry::create([
             'trip_id' => $this->trip->id,
-            'user_id' => auth()->id(),
-            'title' => $validated['entryTitle'] ?? null,
+            'user_id' => Auth::id(),
+            'entry_date' => $now->toDateString(),
+            'title' => filled($validated['entryTitle'] ?? null) ? $validated['entryTitle'] : 'Journal entry',
             'body' => $validated['body'],
-            'location' => $validated['location'] ?? null,
-            'is_public' => $validated['is_public'] ?? false,
-            'logged_at' => now($this->trip->timezone ?? config('app.timezone')),
         ]);
 
         foreach ($this->photos as $upload) {

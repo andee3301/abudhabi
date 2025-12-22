@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\City;
 use App\Models\Trip;
 use Illuminate\Http\Request;
 
@@ -31,11 +32,12 @@ class TripController extends Controller
 
         $cityStops = collect($trip->city_stops ?? []);
         $cityLookup = $cityStops->pluck('city_id')->filter()->isNotEmpty()
-            ? \App\Models\City::whereIn('id', $cityStops->pluck('city_id')->filter())->get()->keyBy('id')
+            ? City::whereIn('id', $cityStops->pluck('city_id')->filter())->get()->keyBy('id')
             : collect();
 
         $cityStops = $cityStops->map(function ($stop) use ($cityLookup) {
-            $city = $stop['city_id'] ? $cityLookup->get($stop['city_id']) : null;
+            $cityId = $stop['city_id'] ?? null;
+            $city = $cityId ? $cityLookup->get($cityId) : null;
 
             return [
                 'label' => $stop['label'] ?? $city?->display_name ?? $city?->name ?? 'Unknown city',
