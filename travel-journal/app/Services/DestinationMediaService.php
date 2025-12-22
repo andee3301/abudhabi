@@ -6,6 +6,7 @@ use App\Support\MarketingAssetRepository;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class DestinationMediaService
@@ -41,7 +42,21 @@ class DestinationMediaService
         $encoded = rawurlencode($title);
         $endpoint = "https://en.wikipedia.org/api/rest_v1/page/summary/{$encoded}";
 
-        $response = Http::acceptJson()->timeout(5)->get($endpoint);
+        try {
+            $response = Http::acceptJson()
+                ->timeout(5)
+                ->withOptions(['http_errors' => false])
+                ->withUserAgent(config('app.name', 'Travel Journal').' bot/1.0')
+                ->get($endpoint);
+        } catch (\Throwable $e) {
+            Log::warning('destination_media.wikipedia_failed', [
+                'city' => $city,
+                'country' => $countryCode,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
 
         if (! $response->successful()) {
             return [];
@@ -72,14 +87,26 @@ class DestinationMediaService
         }
 
         $query = $countryCode ? "$city $countryCode travel" : "$city travel";
-        $response = Http::acceptJson()
-            ->withToken($accessKey)
-            ->timeout(5)
-            ->get('https://api.unsplash.com/search/photos', [
-                'query' => $query,
-                'per_page' => 1,
-                'orientation' => 'landscape',
+        try {
+            $response = Http::acceptJson()
+                ->withToken($accessKey)
+                ->timeout(5)
+                ->withOptions(['http_errors' => false])
+                ->withUserAgent(config('app.name', 'Travel Journal').' bot/1.0')
+                ->get('https://api.unsplash.com/search/photos', [
+                    'query' => $query,
+                    'per_page' => 1,
+                    'orientation' => 'landscape',
+                ]);
+        } catch (\Throwable $e) {
+            Log::warning('destination_media.unsplash_failed', [
+                'city' => $city,
+                'country' => $countryCode,
+                'error' => $e->getMessage(),
             ]);
+
+            return $this->assets->url('trip_cover_default');
+        }
 
         if (! $response->successful()) {
             return $this->assets->url('trip_cover_default');

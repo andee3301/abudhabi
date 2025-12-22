@@ -44,6 +44,8 @@ Laravel 12 + Livewire 3 playground for planning trips, journaling, and sharing m
 ## Scripts
 - `composer setup`: One-shot local setup (deps, env, migrations, npm build).
 - `composer dev`: Run server, queue listener, logs, and Vite concurrently.
+- `composer production`: Cache config/routes/views/events, run migrations, and build assets for a production deploy (use `--skip-asset`
+  and `--skip-migrate` flags on `app:ready` if needed).
 - `npm run build`: Production assets with code-splitting and CSS pruning.
 
 ## Testing Strategy
