@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreItineraryItemRequest;
 use App\Http\Resources\ItineraryItemResource;
-use App\Models\ItineraryItem;
 use App\Models\Trip;
 use App\Support\ChecksAbilities;
 use Illuminate\Http\Request;

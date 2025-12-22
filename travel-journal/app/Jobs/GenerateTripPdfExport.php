@@ -16,7 +16,9 @@ class GenerateTripPdfExport implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $backoff = [15, 45, 90];
+
     public $timeout = 180;
 
     /**

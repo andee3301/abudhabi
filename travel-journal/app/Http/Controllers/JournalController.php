@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreJournalEntryRequest;
+use App\Models\JournalEntry;
 use App\Models\Trip;
 use Illuminate\Http\Request;
 
@@ -32,5 +33,44 @@ class JournalController extends Controller
         ]);
 
         return redirect()->route('trips.show', $trip)->with('status', 'Journal entry saved.');
+    }
+
+    public function edit(Request $request, JournalEntry $journalEntry)
+    {
+        abort_unless($journalEntry->user_id === $request->user()->id, 403);
+
+        return view('journal.form', [
+            'trip' => $journalEntry->trip,
+            'entry' => $journalEntry,
+        ]);
+    }
+
+    public function update(StoreJournalEntryRequest $request, JournalEntry $journalEntry)
+    {
+        abort_unless($journalEntry->user_id === $request->user()->id, 403);
+
+        $trip = Trip::whereBelongsTo($request->user())->findOrFail($request->trip_id);
+
+        $journalEntry->update([
+            'trip_id' => $trip->id,
+            'title' => $request->title,
+            'body' => $request->content,
+            'entry_date' => $request->date,
+            'mood' => $request->mood,
+            'photo_urls' => $request->photo_urls ?? [],
+        ]);
+
+        return redirect()->route('trips.show', $trip)->with('status', 'Journal entry updated.');
+    }
+
+    public function destroy(Request $request, JournalEntry $journalEntry)
+    {
+        abort_unless($journalEntry->user_id === $request->user()->id, 403);
+
+        $trip = Trip::whereBelongsTo($request->user())->findOrFail($journalEntry->trip_id);
+
+        $journalEntry->delete();
+
+        return redirect()->route('trips.show', $trip)->with('status', 'Journal entry deleted.');
     }
 }

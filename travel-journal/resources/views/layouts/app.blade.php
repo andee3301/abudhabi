@@ -60,23 +60,48 @@
                         🌙
                     </button>
                     @auth
-                        <div class="flex items-center gap-2">
+                        <details class="relative">
+                            <summary
+                                class="flex cursor-pointer list-none items-center gap-2 rounded-full border border-transparent px-2 py-1 text-left transition hover:border-orange-200 hover:bg-orange-50 dark:hover:border-slate-700 dark:hover:bg-slate-800">
+                                <div
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/70 text-xs font-semibold text-white">
+                                    {{ strtoupper(substr(auth()->user()->display_name ?? auth()->user()->name, 0, 1)) }}
+                                </div>
+                                <div class="hidden sm:block">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                                        {{ auth()->user()->display_name ?? auth()->user()->name }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        {{ auth()->user()->home_country ?? 'Traveler' }}</p>
+                                </div>
+                                <span class="ml-1 text-xs text-slate-400">▾</span>
+                            </summary>
                             <div
-                                class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/70 text-xs font-semibold text-white">
-                                {{ strtoupper(substr(auth()->user()->display_name ?? auth()->user()->name, 0, 1)) }}
+                                class="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+                                <div class="border-b border-slate-100 px-4 py-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                                    Signed in as
+                                    <div class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                        {{ auth()->user()->email }}
+                                    </div>
+                                </div>
+                                <a href="{{ route('profile') }}"
+                                    class="block px-4 py-2 text-sm text-slate-700 transition hover:bg-orange-50 hover:text-orange-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                    Profile
+                                </a>
+                                <a href="{{ route('profile') }}#api-keys"
+                                    class="block px-4 py-2 text-sm text-slate-700 transition hover:bg-orange-50 hover:text-orange-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                    API keys
+                                </a>
+                                <div class="border-t border-slate-100 px-2 py-2 dark:border-slate-800">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full rounded-lg bg-orange-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-orange-700 dark:bg-orange-500 dark:text-slate-950 dark:hover:bg-orange-400">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="hidden sm:block">
-                                <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                                    {{ auth()->user()->display_name ?? auth()->user()->name }}</p>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    {{ auth()->user()->home_country ?? 'Traveler' }}</p>
-                            </div>
-                        </div>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button
-                                class="rounded-lg bg-orange-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-orange-700 dark:bg-orange-500 dark:text-slate-950 dark:hover:bg-orange-400">Logout</button>
-                        </form>
+                        </details>
                     @endauth
                 </div>
             </div>

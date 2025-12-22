@@ -1,5 +1,15 @@
 <div class="space-y-4">
-    <form wire:submit.prevent="addItem" class="space-y-3">
+    <div class="flex items-center justify-between">
+        <div class="space-y-1">
+            <p class="text-sm font-semibold text-gray-900">{{ $editingItemId ? 'Edit itinerary item' : 'Add itinerary item' }}</p>
+            <p class="text-xs text-gray-500">Plan activities, travel, and notes for the trip.</p>
+        </div>
+        @if($editingItemId)
+            <button type="button" wire:click="cancelEditing" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Cancel edit</button>
+        @endif
+    </div>
+
+    <form wire:submit.prevent="{{ $editingItemId ? 'updateItem' : 'addItem' }}" class="space-y-3">
         <div class="grid gap-3 md:grid-cols-3">
             <div>
                 <label class="text-xs font-semibold text-gray-600">Type</label>
@@ -75,7 +85,7 @@
         </div>
         <div class="flex items-center gap-3">
             <button type="submit" class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                Add item
+                {{ $editingItemId ? 'Update item' : 'Add item' }}
             </button>
             <p class="text-xs text-gray-500">Updates timeline instantly.</p>
         </div>
@@ -87,13 +97,19 @@
             <span class="text-xs text-gray-500">{{ $upcoming->count() }} items</span>
         </div>
         @forelse($upcoming as $item)
-            <div class="flex items-start justify-between rounded-lg bg-white/80 p-3 shadow-sm ring-1 ring-white/60">
+            <div class="flex items-start justify-between gap-3 rounded-lg bg-white/80 p-3 shadow-sm ring-1 ring-white/60">
                 <div>
                     <p class="text-sm font-semibold text-gray-900">{{ $item->title }}</p>
                     <p class="text-xs text-gray-600">{{ ucfirst($item->type) }} · {{ $item->city ?? $item->location_name }}</p>
                     <p class="text-[11px] text-gray-500">{{ optional($item->start_datetime)->format('M d, H:i') }} {{ $item->timezone ?? $trip->timezone ?? 'UTC' }}</p>
                 </div>
-                <span class="text-[11px] font-semibold text-indigo-600">{{ ucfirst($item->status ?? 'planned') }}</span>
+                <div class="flex flex-col items-end gap-2 text-[11px] font-semibold text-indigo-600">
+                    <span>{{ ucfirst($item->status ?? 'planned') }}</span>
+                    <div class="flex items-center gap-2 text-[11px] font-semibold">
+                        <button type="button" wire:click="startEditing({{ $item->id }})" class="text-indigo-600 hover:text-indigo-700">Edit</button>
+                        <button type="button" wire:click="deleteItem({{ $item->id }})" class="text-rose-600 hover:text-rose-700">Delete</button>
+                    </div>
+                </div>
             </div>
         @empty
             <p class="text-sm text-gray-500">No itinerary yet. Add your first stop above.</p>

@@ -14,8 +14,7 @@ class GoogleAnalyticsService
     public function __construct(
         private readonly AnalyticsClient $client,
         private readonly ?string $propertyId,
-    ) {
-    }
+    ) {}
 
     public function runReport(
         array $dimensions,
@@ -27,20 +26,20 @@ class GoogleAnalyticsService
         }
 
         $dimensionObjects = array_map(function (string $name): Dimension {
-            $dimension = new Dimension();
+            $dimension = new Dimension;
             $dimension->setName($name);
 
             return $dimension;
         }, $dimensions);
 
         $metricObjects = array_map(function (string $name): Metric {
-            $metric = new Metric();
+            $metric = new Metric;
             $metric->setName($name);
 
             return $metric;
         }, $metrics);
 
-        $range = new DateRange();
+        $range = new DateRange;
         $range->setStartDate($dateRange['start_date'] ?? '7daysAgo');
         $range->setEndDate($dateRange['end_date'] ?? 'today');
 

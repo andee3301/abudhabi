@@ -89,6 +89,11 @@ class Trip extends Model
         return $this->hasMany(TripTimeline::class);
     }
 
+    public function events()
+    {
+        return $this->hasMany(TripEvent::class);
+    }
+
     public function housing()
     {
         return $this->itineraryItems()->where('type', 'housing');

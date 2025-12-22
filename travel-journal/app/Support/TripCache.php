@@ -18,6 +18,7 @@ class TripCache
         if ($search) {
             $parts[] = 'search:'.md5($search);
         }
+
         return implode(':', $parts);
     }
 

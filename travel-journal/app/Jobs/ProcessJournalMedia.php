@@ -17,7 +17,9 @@ class ProcessJournalMedia implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $backoff = [10, 30, 60];
+
     public $timeout = 120;
 
     /**
@@ -44,6 +46,7 @@ class ProcessJournalMedia implements ShouldQueue
 
                 if ($contents === false) {
                     Log::warning("Failed to download image: {$url}");
+
                     continue;
                 }
 

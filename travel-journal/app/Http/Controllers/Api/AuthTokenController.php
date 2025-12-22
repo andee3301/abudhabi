@@ -20,6 +20,10 @@ class AuthTokenController extends Controller
         'journal:write',
         'stats:read',
         'cities:read',
+        'events:read',
+        'events:write',
+        'profile:read',
+        'profile:write',
     ];
 
     public function store(Request $request)

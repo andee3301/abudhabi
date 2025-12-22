@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ApiTokenController;
-use App\Http\Controllers\CityLookupController;
-use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\CityGuideController;
+use App\Http\Controllers\CityLookupController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('journal/create', [JournalController::class, 'create'])->name('journal.create');
     Route::post('journal', [JournalController::class, 'store'])->name('journal.store');
+    Route::get('journal/{journalEntry}/edit', [JournalController::class, 'edit'])->name('journal.edit');
+    Route::put('journal/{journalEntry}', [JournalController::class, 'update'])->name('journal.update');
+    Route::delete('journal/{journalEntry}', [JournalController::class, 'destroy'])->name('journal.destroy');
 
     Route::view('profile', 'profile')->name('profile');
     Route::post('profile/api-token', [ApiTokenController::class, 'store'])->name('profile.api-token.store');

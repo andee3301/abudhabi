@@ -85,6 +85,27 @@
 
             <main class="mt-16 flex flex-1 flex-col gap-16 lg:mt-20 lg:flex-row">
                 <div class="lg:w-1/2 space-y-6">
+                    <p class="text-sm uppercase tracking-[0.28em] text-gray-500">Travel journal, no clutter</p>
+                    <h1 class="text-4xl font-semibold leading-tight text-gray-900">Ship your trips without maps or
+                        busy dashboards.</h1>
+                    <p class="max-w-xl text-sm text-gray-600">Timeline-first journaling with synced media and weather
+                        so you can focus on moments, not map tiles. Works great on mobile, offline-friendly, and quick
+                        to
+                        update.</p>
+
+                    <div class="flex flex-wrap items-center gap-3 text-sm">
+                        <a href="{{ route('register') }}"
+                            class="inline-flex items-center rounded-2xl bg-indigo-600 px-4 py-2 font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-700"
+                            wire:navigate>Start journaling</a>
+                        <a href="{{ route('login') }}"
+                            class="inline-flex items-center rounded-2xl bg-white/80 px-4 py-2 font-semibold text-gray-700 shadow-sm ring-1 ring-white/60 transition hover:text-indigo-600"
+                            wire:navigate>Preview the app</a>
+                        <span class="pill-primary">Live sync</span>
+                        <span class="pill-soft">Private by default</span>
+                    </div>
+
+                    <dl class="grid gap-3 sm:grid-cols-3">
+                        <div class="rounded-2xl bg-white/80 p-4 shadow ring-1 ring-white/60">
                             <dt class="text-xs uppercase tracking-wide text-gray-500">Trips tracked</dt>
                             <dd class="mt-1 text-3xl font-semibold text-gray-900">120+</dd>
                         </div>
@@ -101,54 +122,34 @@
 
                 <div class="lg:w-1/2 space-y-6">
                     <div class="glass-card relative overflow-hidden p-6 text-sm text-gray-700">
-                        <img src="{{ $marketingAssets->url('world_map_wireframe') }}"
-                            alt="{{ $marketingAssets->metadata('world_map_wireframe', 'alt') ?? 'World map wireframe' }}"
-                            class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
-                            loading="lazy" decoding="async">
-                        <div class="relative">
+                        <div class="relative space-y-4">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs uppercase tracking-wide text-gray-500">Live world view</p>
-                                    <p class="text-xl font-semibold text-gray-900">Journeys synced across continents</p>
+                                    <p class="text-xs uppercase tracking-wide text-gray-500">Live timeline feed</p>
+                                    <p class="text-xl font-semibold text-gray-900">Recent hops and weather pulls</p>
                                 </div>
-                                <span class="pill-primary">Real-time</span>
-                            </div>
-                            <div class="mt-6 grid gap-4 sm:grid-cols-3">
-                                <div class="rounded-xl bg-white/85 p-3 shadow ring-1 ring-white/60">
-                                    <p class="text-xs text-gray-500">Lisbon</p>
-                                    <p class="text-sm font-semibold text-gray-900">Golden light walk</p>
-                                    <p class="text-xs text-emerald-600">Photos syncing</p>
-                                </div>
-                                <div class="rounded-xl bg-white/85 p-3 shadow ring-1 ring-white/60">
-                                    <p class="text-xs text-gray-500">Kyoto</p>
-                                    <p class="text-sm font-semibold text-gray-900">Fushimi guides</p>
-                                    <p class="text-xs text-amber-600">Audio notes</p>
-                                </div>
-                                <div class="rounded-xl bg-white/85 p-3 shadow ring-1 ring-white/60">
-                                    <p class="text-xs text-gray-500">Cairo</p>
-                                    <p class="text-sm font-semibold text-gray-900">Souq stories</p>
-                                    <p class="text-xs text-indigo-600">Weather logged</p>
-                                </div>
+                                <span class="pill-primary">Updated</span>
                             </div>
 
-                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4 sm:grid-cols-3">
                                 @foreach ($weatherCities as $city)
-                                    <div
-                                        class="flex items-center gap-3 rounded-2xl bg-white/85 p-3 shadow ring-1 ring-white/60">
-                                        <img src="{{ $marketingAssets->url($city['key']) }}" alt="{{ $city['alt'] }}"
-                                            class="h-8 w-12 rounded-lg object-cover" loading="lazy" decoding="async">
-                                        <div>
-                                            <p class="text-sm font-semibold text-gray-900">{{ $city['city'] }}</p>
-                                            <p class="text-xs text-gray-500">{{ $city['meta'] }}</p>
-                                        </div>
+                                    <div class="rounded-xl bg-white/90 p-3 shadow ring-1 ring-white/60">
+                                        <p class="text-xs text-gray-500">{{ $city['city'] }}</p>
+                                        <p class="text-sm font-semibold text-gray-900">{{ $city['meta'] }}</p>
+                                        <p class="text-[11px] text-emerald-600">Synced to timeline</p>
                                     </div>
                                 @endforeach
+                                <div class="rounded-xl bg-white/90 p-3 shadow ring-1 ring-white/60">
+                                    <p class="text-xs text-gray-500">Kyoto, JP</p>
+                                    <p class="text-sm font-semibold text-gray-900">Fushimi guides</p>
+                                    <p class="text-[11px] text-indigo-600">Events sorted</p>
+                                </div>
                             </div>
 
-                            <div class="mt-6 flex items-center justify-between text-xs text-gray-500">
-                                <span>Auto-fetches weather, flags, and location art</span>
+                            <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                                <span>Auto-fetches weather, flags, and location art—no maps needed.</span>
                                 <a href="{{ route('login') }}" class="text-indigo-600 hover:text-indigo-700"
-                                    wire:navigate>Preview app →</a>
+                                    wire:navigate>See dashboard →</a>
                             </div>
                         </div>
                     </div>
@@ -167,7 +168,8 @@
                             <div class="mt-4 flex items-center -space-x-3">
                                 @foreach ($avatarStack as $avatar)
                                     <img src="{{ $marketingAssets->url($avatar['key']) }}" alt="{{ $avatar['alt'] }}"
-                                        class="h-10 w-10 rounded-full border-2 border-white object-cover" loading="lazy" decoding="async">
+                                        class="h-10 w-10 rounded-full border-2 border-white object-cover" loading="lazy"
+                                        decoding="async">
                                 @endforeach
                                 <span class="ml-4 text-xs text-gray-500">Shared albums stay in sync.</span>
                             </div>
@@ -175,13 +177,14 @@
 
                         <div class="rounded-3xl bg-gradient-to-br from-indigo-600 to-sky-500 p-5 text-white shadow-xl">
                             <p class="text-sm font-semibold">Country highlights</p>
-                            <p class="mt-2 text-xs text-indigo-100">Pin multiple stamps without any global map overlays.</p>
+                            <p class="mt-2 text-xs text-indigo-100">Pin stamps without relying on a globe view.</p>
                             <div class="mt-4 space-y-3 text-sm">
                                 @foreach ($countryHighlights as $country)
                                     <div class="flex items-center justify-between rounded-2xl bg-white/15 px-3 py-2">
                                         <span class="inline-flex items-center gap-2">
                                             <img src="{{ $marketingAssets->url($country['key']) }}"
-                                                alt="{{ $country['alt'] }}" class="h-4 w-6 rounded-sm object-cover" loading="lazy" decoding="async">
+                                                alt="{{ $country['alt'] }}" class="h-4 w-6 rounded-sm object-cover"
+                                                loading="lazy" decoding="async">
                                             {{ $country['name'] }}
                                         </span>
                                         <span class="text-xs text-indigo-100">{{ $country['entries'] }}</span>
@@ -189,7 +192,7 @@
                                 @endforeach
                             </div>
                             <div class="mt-6 rounded-2xl bg-white/10 p-3 text-xs text-indigo-50">
-                                Focus on trip notes and milestones instead of a world map view.
+                                Built to prioritize moments and milestones over map tiles.
                             </div>
                         </div>
                     </div>

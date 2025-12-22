@@ -23,4 +23,8 @@ return [
         'measurement_id' => env('GA_MEASUREMENT_ID'),
         'debug_mode' => (bool) env('GA_DEBUG_MODE', false),
     ],
+
+    'unsplash' => [
+        'access_key' => env('UNSPLASH_ACCESS_KEY'),
+    ],
 ];

@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class SlackNotifier
 {
-    public function __construct(private readonly ?string $webhookUrl = null)
-    {
-    }
+    public function __construct(private readonly ?string $webhookUrl = null) {}
 
     public function notify(string $message, array $context = []): bool
     {

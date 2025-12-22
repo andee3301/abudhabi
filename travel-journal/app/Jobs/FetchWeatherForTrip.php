@@ -15,11 +15,10 @@ class FetchWeatherForTrip implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $backoff = 15;
 
-    public function __construct(public Trip $trip)
-    {
-    }
+    public function __construct(public Trip $trip) {}
 
     public function handle(): void
     {

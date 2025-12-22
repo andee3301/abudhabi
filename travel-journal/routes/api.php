@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\ItineraryController;
 use App\Http\Controllers\Api\ItineraryItemController;
 use App\Http\Controllers\Api\JournalEntryController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TripController as ApiTripController;
+use App\Http\Controllers\Api\TripEventController;
 use App\Http\Controllers\Api\TripNoteController;
 use App\Http\Controllers\Api\TripTimelineController;
 use Illuminate\Support\Facades\Route;
@@ -48,5 +50,14 @@ Route::middleware(['auth:sanctum', 'ability.token'])->group(function () {
     Route::put('/timeline/{tripTimeline}', [TripTimelineController::class, 'update'])->middleware('abilities:trips:write');
     Route::delete('/timeline/{tripTimeline}', [TripTimelineController::class, 'destroy'])->middleware('abilities:trips:write');
 
+    Route::get('/trips/{trip}/events', [TripEventController::class, 'index'])->middleware('abilities:events:read');
+    Route::post('/trips/{trip}/events', [TripEventController::class, 'store'])->middleware('abilities:events:write');
+    Route::put('/trips/{trip}/events/{event}', [TripEventController::class, 'update'])->middleware('abilities:events:write');
+    Route::delete('/trips/{trip}/events/{event}', [TripEventController::class, 'destroy'])->middleware('abilities:events:write');
+
     Route::get('/stats/overview', StatsController::class)->middleware('abilities:stats:read');
+
+    Route::get('/profile', [ProfileController::class, 'show'])->middleware('abilities:profile:read');
+    Route::put('/profile', [ProfileController::class, 'update'])->middleware('abilities:profile:write');
+    Route::post('/profile/avatar', [ProfileController::class, 'avatar'])->middleware('abilities:profile:write');
 });

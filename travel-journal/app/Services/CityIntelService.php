@@ -19,8 +19,7 @@ class CityIntelService
         protected ElectricalStandardRepository $electricalRepository,
         protected CostOfLivingEstimator $costEstimator,
         protected LonelyPlanetIntelProvider $lonelyPlanetIntelProvider,
-    ) {
-    }
+    ) {}
 
     public function intel(City $city): CityIntel
     {

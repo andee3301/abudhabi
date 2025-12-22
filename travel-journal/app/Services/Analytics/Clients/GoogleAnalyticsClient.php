@@ -8,12 +8,10 @@ use Google\Analytics\Data\V1beta\RunReportResponse;
 
 class GoogleAnalyticsClient implements AnalyticsClient
 {
-    public function __construct(private readonly BetaAnalyticsDataClient $client)
-    {
-    }
+    public function __construct(private readonly BetaAnalyticsDataClient $client) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function runReport(array $payload): RunReportResponse
     {

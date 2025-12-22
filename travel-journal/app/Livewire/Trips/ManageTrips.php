@@ -15,24 +15,43 @@ class ManageTrips extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $filterStatus = 'all';
+
     public string $formStatus = 'planned';
+
     public string $title = '';
+
     public string $primary_location_name = '';
+
     public ?string $city = '';
+
     public ?string $state_region = '';
+
     public ?string $country_code = '';
+
     public ?string $timezone = '';
+
     public ?int $region_id = null;
+
     public string $start_date = '';
+
     public string $end_date = '';
+
     public ?string $notes = '';
+
     public ?string $location_overview = '';
+
     public ?string $companion_name = '';
+
     public string $cityStopsInput = '';
+
     public string $wishlistInput = '';
+
     public array $timezoneOptions = [];
+
     public $regions;
+
     public ?int $editingTripId = null;
 
     protected $queryString = [

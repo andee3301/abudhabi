@@ -23,7 +23,7 @@ class MarketingAssetRepository
         $cdnBase = config('services.marketing_assets.cdn_base_url');
 
         if ($cdnBase) {
-            return rtrim($cdnBase, '/') . '/' . ltrim($asset->path, '/');
+            return rtrim($cdnBase, '/').'/'.ltrim($asset->path, '/');
         }
 
         return asset($asset->path);

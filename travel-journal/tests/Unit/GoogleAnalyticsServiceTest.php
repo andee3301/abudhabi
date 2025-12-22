@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Services\Analytics\GoogleAnalyticsService;
 use App\Services\Analytics\Contracts\AnalyticsClient;
+use App\Services\Analytics\GoogleAnalyticsService;
 use Google\Analytics\Data\V1beta\RunReportResponse;
 use PHPUnit\Framework\TestCase;
 

@@ -13,10 +13,15 @@ class JournalTimeline extends Component
     use WithFileUploads;
 
     public Trip $trip;
+
     public ?string $entryTitle = '';
+
     public ?string $body = '';
+
     public ?string $location = '';
+
     public bool $is_public = false;
+
     public array $photos = [];
 
     protected function rules(): array

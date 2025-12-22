@@ -14,6 +14,7 @@ Artisan::command('slack:notify {message : Message to send} {--context=* : Option
     foreach ($this->option('context') as $pair) {
         if (! str_contains($pair, '=')) {
             $this->warn("Ignoring context value [{$pair}] because it is not key=value.");
+
             continue;
         }
 
@@ -25,6 +26,7 @@ Artisan::command('slack:notify {message : Message to send} {--context=* : Option
 
     if ($sent) {
         $this->info('Slack notification sent.');
+
         return;
     }
 

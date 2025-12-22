@@ -18,22 +18,22 @@ return new class extends Migration
         $isSqlite = Schema::getConnection()->getDriverName() === 'sqlite';
 
         Schema::table('journal_entries', function (Blueprint $table) use ($isSqlite) {
-            if ($isSqlite || !$this->indexExists('journal_entries', 'journal_entries_user_id_entry_date_index')) {
+            if ($isSqlite || ! $this->indexExists('journal_entries', 'journal_entries_user_id_entry_date_index')) {
                 $table->index(['user_id', 'entry_date']);
             }
         });
 
         Schema::table('trip_notes', function (Blueprint $table) use ($isSqlite) {
-            if ($isSqlite || !$this->indexExists('trip_notes', 'trip_notes_user_id_note_date_index')) {
+            if ($isSqlite || ! $this->indexExists('trip_notes', 'trip_notes_user_id_note_date_index')) {
                 $table->index(['user_id', 'note_date']);
             }
-            if ($isSqlite || !$this->indexExists('trip_notes', 'trip_notes_is_pinned_index')) {
+            if ($isSqlite || ! $this->indexExists('trip_notes', 'trip_notes_is_pinned_index')) {
                 $table->index('is_pinned');
             }
         });
 
         Schema::table('trip_timelines', function (Blueprint $table) use ($isSqlite) {
-            if ($isSqlite || !$this->indexExists('trip_timelines', 'trip_timelines_user_id_occurred_at_index')) {
+            if ($isSqlite || ! $this->indexExists('trip_timelines', 'trip_timelines_user_id_occurred_at_index')) {
                 $table->index(['user_id', 'occurred_at']);
             }
         });
@@ -53,11 +53,11 @@ return new class extends Migration
         $dbName = $conn->getDatabaseName();
 
         $result = $conn->selectOne(
-            "SELECT COUNT(1) as count
+            'SELECT COUNT(1) as count
              FROM INFORMATION_SCHEMA.STATISTICS
              WHERE table_schema = ?
              AND table_name = ?
-             AND index_name = ?",
+             AND index_name = ?',
             [$dbName, $table, $indexName]
         );
 
