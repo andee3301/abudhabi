@@ -38,6 +38,14 @@ class User extends Authenticatable
     ];
 
     /**
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'timezone',
+        'currency',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -58,6 +66,16 @@ class User extends Authenticatable
     public function homeSettings()
     {
         return $this->hasOne(UserHomeSetting::class);
+    }
+
+    public function getTimezoneAttribute(): ?string
+    {
+        return $this->homeSettings?->home_timezone;
+    }
+
+    public function getCurrencyAttribute(): ?string
+    {
+        return $this->homeSettings?->preferred_currency;
     }
 
     public function journalEntries()

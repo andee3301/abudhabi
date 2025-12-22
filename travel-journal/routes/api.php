@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\TripController as ApiTripController;
 use App\Http\Controllers\Api\TripEventController;
 use App\Http\Controllers\Api\TripNoteController;
 use App\Http\Controllers\Api\TripTimelineController;
+use App\Http\Controllers\Api\WeatherController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/token', [AuthTokenController::class, 'store']);
@@ -54,6 +55,9 @@ Route::middleware(['auth:sanctum', 'ability.token'])->group(function () {
     Route::post('/trips/{trip}/events', [TripEventController::class, 'store'])->middleware('abilities:events:write');
     Route::put('/trips/{trip}/events/{event}', [TripEventController::class, 'update'])->middleware('abilities:events:write');
     Route::delete('/trips/{trip}/events/{event}', [TripEventController::class, 'destroy'])->middleware('abilities:events:write');
+
+    Route::get('/trips/{trip}/weather', [WeatherController::class, 'index'])->middleware('abilities:trips:read');
+    Route::post('/trips/{trip}/weather/fetch', [WeatherController::class, 'fetch'])->middleware('abilities:trips:write');
 
     Route::get('/stats/overview', StatsController::class)->middleware('abilities:stats:read');
 

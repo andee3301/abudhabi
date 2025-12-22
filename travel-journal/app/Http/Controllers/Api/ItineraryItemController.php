@@ -47,8 +47,10 @@ class ItineraryItemController extends Controller
         $data['city'] = $data['city'] ?? $trip->city ?? $trip->primary_location_name;
         $data['timezone'] = $data['timezone'] ?? $trip->timezone ?? 'UTC';
 
-        if (! $data['day_number'] && ! empty($data['start_datetime']) && $trip->start_date) {
-            $data['day_number'] = Carbon::parse($trip->start_date)->diffInDays(Carbon::parse($data['start_datetime'])) + 1;
+        if (is_null($data['day_number'] ?? null) && ! empty($data['start_datetime']) && $trip->start_date) {
+            $tripStart = Carbon::parse($trip->start_date)->startOfDay();
+            $itemStart = Carbon::parse($data['start_datetime'])->startOfDay();
+            $data['day_number'] = $tripStart->diffInDays($itemStart) + 1;
         }
 
         $item = $trip->itineraryItems()->create($data);

@@ -89,6 +89,11 @@ class Trip extends Model
         return $this->hasMany(TripTimeline::class);
     }
 
+    public function weatherSnapshots()
+    {
+        return $this->hasMany(WeatherSnapshot::class);
+    }
+
     public function events()
     {
         return $this->hasMany(TripEvent::class);

@@ -11,7 +11,7 @@ class ProfileController extends Controller
 {
     public function show(Request $request)
     {
-        return $request->user();
+        return $request->user()->loadMissing('homeSettings');
     }
 
     public function update(Request $request)
@@ -23,9 +23,21 @@ class ProfileController extends Controller
             'currency' => ['nullable', 'string', 'max:10'],
         ]);
 
-        $request->user()->update($data);
+        $user = $request->user();
 
-        return $request->user()->fresh();
+        $user->update(collect($data)->only(['name', 'email'])->all());
+
+        if (array_key_exists('timezone', $data) || array_key_exists('currency', $data)) {
+            $user->homeSettings()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'home_timezone' => $data['timezone'] ?? $user->homeSettings?->home_timezone,
+                    'preferred_currency' => $data['currency'] ?? $user->homeSettings?->preferred_currency,
+                ]
+            );
+        }
+
+        return $user->fresh()->loadMissing('homeSettings');
     }
 
     public function avatar(Request $request)
@@ -36,12 +48,16 @@ class ProfileController extends Controller
 
         $path = $request->file('avatar')->store('avatars', 'public');
 
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+        $avatarUrl = $disk->url($path);
+
         $request->user()->forceFill([
-            'avatar_path' => $path,
+            'avatar_url' => $avatarUrl,
         ])->save();
 
         return response()->json([
-            'avatar_url' => Storage::disk('public')->url($path),
+            'avatar_url' => $avatarUrl,
         ]);
     }
 }
